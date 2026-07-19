@@ -1,0 +1,15 @@
+{
+  "name": "inner-animal",
+  "version": "1.0.0",
+  "description": "Free personality quiz that matches you to your inner animal from 130 species. Static SPA with an optional Express+SQLite backend for saved results and 6-digit email sign-in.",
+  "private": true,
+  "scripts": {
+    "dev": "python3 -m http.server 8080",
+    "start": "node server/index.js",
+    "build": "rm -rf dist && mkdir -p dist && cp index.html animal_data.js quiz_logic.js favicon.svg apple-touch-icon.png og-image.png robots.txt sitemap.xml llms.txt dist/ 2>/dev/null; cp -r images dist/; true",
+    "test": "node --test 'server/test/*.test.js'"
+  },
+  "dependencies": {
+    "express": "^4.22.2"
+  }
+}

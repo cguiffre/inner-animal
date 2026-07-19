@@ -1,0 +1,15 @@
+# Inner Animal
+
+> A free personality quiz that matches you to your inner animal from 130 real species across Land, Air, and Water — spanning familiar favorites to genuinely bizarre creatures. No sign-up required to play.
+
+Inner Animal is a lightweight web app. You answer a short set of playful questions about temperament, work style, social energy, and habitat preferences, plus a "Familiar ↔ Surprising" slider, and the quiz matches you to one of 130 animals with a top result, close alternates, and a "shadow" opposite. Results can be saved and (optionally) synced to an account.
+
+## Key pages
+- [Home](https://www.inneranimalquiz.com/): overview and start the quiz.
+- [Quiz](https://www.inneranimalquiz.com/): the personality quiz itself.
+- [The Zoo](https://www.inneranimalquiz.com/): browse all 130 animals grouped by realm (Land/Air/Water) and rarity (Common/Uncommon/Unique/Bizarre).
+
+## About
+- Free to use, no account required to take the quiz.
+- 130 animals, each with distinct trait and habitat profiles; every animal is reachable as a result.
+- Built as a fast single-page app; optional accounts (via a 6-digit email code) let you save and sync results.

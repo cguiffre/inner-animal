@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>inner-animal — Mission Control</title>
+<style>
+:root{
+  --space:#060b16; --panel:#0d1626; --panel2:#111d33; --line:#1f3352;
+  --cream:#f2e8d5; --amber:#ffb347; --cyan:#5fe8d6; --coral:#ff6f5e;
+  --dim:#8ba0c0; --ok:#8fe388;
+  --sans:"Futura","Avenir Next","Century Gothic","Trebuchet MS",sans-serif;
+  --mono:"Menlo","SF Mono","Consolas",monospace;
+}
+*{box-sizing:border-box;margin:0}
+html,body{height:100%}
+body{background:var(--space);color:var(--cream);font-family:var(--sans);overflow:hidden}
+body::after{content:"";pointer-events:none;position:fixed;inset:0;z-index:50;
+  background:repeating-linear-gradient(0deg,transparent 0 2px,rgba(0,0,0,.12) 2px 4px);opacity:.35}
+#stars{position:fixed;inset:0;z-index:0}
+#bgimg{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;opacity:.28;z-index:0;
+  filter:saturate(.8)}
+header{position:relative;z-index:10;display:flex;align-items:center;gap:16px;padding:10px 18px;
+  background:linear-gradient(180deg,var(--panel2),var(--panel));border-bottom:2px solid var(--amber)}
+.patch{width:44px;height:44px;border-radius:50%;border:2px solid var(--amber);
+  display:grid;place-items:center;background:radial-gradient(circle at 35% 30%,#20345a,#0a1322);
+  flex:none;overflow:hidden}
+.patch img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+h1{font-size:17px;letter-spacing:.22em;text-transform:uppercase}
+h1 small{display:block;font-size:10px;letter-spacing:.35em;color:var(--amber)}
+#clockbox{margin-left:auto;text-align:right;font-family:var(--mono);font-size:11px;color:var(--dim)}
+#clockbox b{color:var(--cyan);font-weight:400}
+#search{background:var(--panel);border:1px solid var(--line);color:var(--cream);
+  font-family:var(--mono);font-size:12px;padding:7px 12px;border-radius:20px;width:230px;outline:none}
+#search:focus{border-color:var(--cyan)}
+#stage{position:absolute;inset:64px 0 0 0;z-index:1}
+svg{width:100%;height:100%;display:block}
+/* control panels */
+.panel{position:absolute;z-index:20;background:rgba(13,22,38,.92);border:1px solid var(--line);
+  border-radius:10px;padding:12px 14px;box-shadow:0 6px 24px rgba(0,0,0,.5)}
+.panel h2{font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--amber);
+  margin-bottom:8px;border-bottom:1px dashed var(--line);padding-bottom:5px}
+.panel h2::before{content:"◉ ";color:var(--cyan)}
+#filters{left:14px;top:78px;max-width:250px}
+.chip{display:inline-block;margin:2px 3px 2px 0;padding:3px 10px;border-radius:12px;cursor:pointer;
+  font-size:10px;letter-spacing:.08em;text-transform:uppercase;border:1px solid var(--line);
+  color:var(--dim);user-select:none}
+.chip.on{color:var(--space);background:var(--cyan);border-color:var(--cyan)}
+.chip.conf.on{background:var(--amber);border-color:var(--amber)}
+.chip.tog{border-style:dashed;color:var(--amber);font-weight:bold}
+#legend{left:14px;bottom:14px;font-size:11px;max-width:250px}
+#legend .row{display:flex;align-items:center;gap:8px;margin:3px 0;color:var(--dim)}
+#legend .sw{width:22px;height:0;border-top:2px dashed var(--cyan);flex:none}
+#review{right:14px;bottom:14px;max-width:300px;max-height:40vh;overflow:auto}
+#review ul{list-style:none}
+#review li{display:flex;gap:7px;align-items:flex-start;margin:5px 0;padding:3px 4px;border-radius:7px;
+  font-size:11px;color:var(--dim)}
+#review li[data-k]:hover{background:rgba(95,232,214,.06)}  /* whole row reacts → reads as interactive */
+#review .lbl{cursor:pointer}
+#review .lbl:hover{color:var(--cyan)}
+#review .warn .lbl{color:var(--coral)}
+#review .warn .lbl:hover{color:var(--cyan)}
+#review .why{display:block;font-family:var(--mono);font-size:9px;color:var(--dim);margin-top:2px}
+/* the ✓ is a real button — style it like one so it never reads as a static bullet:
+   filled cyan chip, cursor, pulse ring, and a solid green fill on hover/press */
+#review button{flex:none;display:grid;place-items:center;width:22px;height:22px;padding:0;
+  background:rgba(95,232,214,.14);border:1px solid var(--cyan);border-radius:6px;color:var(--cyan);
+  cursor:pointer;font-size:13px;line-height:1;box-shadow:0 0 0 3px rgba(95,232,214,.06);
+  transition:background .12s,color .12s,box-shadow .12s,transform .08s}
+#review button:hover{color:var(--space);background:var(--ok);border-color:var(--ok);
+  box-shadow:0 0 9px rgba(143,227,136,.55)}
+#review button:active{transform:scale(.88)}
+#review details{margin-top:8px;border-top:1px dashed var(--line);padding-top:6px}
+#review summary{cursor:pointer;font-family:var(--mono);font-size:9px;letter-spacing:.14em;color:var(--dim)}
+#review .done .lbl{text-decoration:line-through;cursor:default}
+#review .done .lbl:hover{color:var(--dim)}
+/* reviewed rows are already handled → mute their undo button so the open ✓ chips stand out */
+#review .done button{background:none;border-color:var(--line);color:var(--dim);box-shadow:none}
+#review .done button:hover{color:var(--amber);border-color:var(--amber);background:none;box-shadow:none}
+#evidence a{color:var(--cyan);text-decoration:none}
+#evidence a:hover{text-decoration:underline}
+#details{right:14px;top:78px;width:300px;max-height:55vh;overflow:auto;display:none}
+#details.open{display:block}
+#details h3{font-size:14px;letter-spacing:.08em;color:var(--cyan);margin-bottom:2px}
+#details .meta{font-family:var(--mono);font-size:10px;color:var(--dim);margin-bottom:8px}
+#details p{font-size:12px;line-height:1.5;margin-bottom:8px}
+.badge{display:inline-block;font-size:9px;letter-spacing:.15em;text-transform:uppercase;
+  padding:2px 8px;border-radius:9px;border:1px solid}
+.badge.confirmed{color:var(--ok);border-color:var(--ok)}
+.badge.inferred{color:var(--amber);border-color:var(--amber)}
+.badge.needs-review{color:var(--coral);border-color:var(--coral)}
+#evidence{font-family:var(--mono);font-size:10px;color:var(--dim);border-top:1px dashed var(--line);
+  padding-top:6px;margin-top:4px}
+#evidence div{margin:3px 0;word-break:break-all}
+#evidence div::before{content:"▸ ";color:var(--cyan)}
+#close{float:right;cursor:pointer;color:var(--dim);font-family:var(--mono)}
+/* svg node + flow styling */
+.node{cursor:pointer}
+.node .halo{fill:none;stroke:var(--cyan);stroke-width:1;opacity:0}
+.node:hover .halo,.node.sel .halo{opacity:.9;animation:halo 2.4s linear infinite}
+@keyframes halo{from{stroke-dasharray:4 6;stroke-dashoffset:0}to{stroke-dasharray:4 6;stroke-dashoffset:-20}}
+.node text{fill:var(--cream);font-family:var(--sans);font-size:11px;letter-spacing:.06em;
+  text-anchor:middle;paint-order:stroke;stroke:rgba(6,11,22,.85);stroke-width:3}
+.node .sub{fill:var(--dim);font-size:9px;font-family:var(--mono);letter-spacing:.04em}
+.node.needs-review .glyph{stroke:var(--coral)!important}
+.node.dim,.flow.dim{opacity:.10;pointer-events:none}
+.node.hidden,.flow.hidden{display:none}
+.flow path.vis{fill:none;stroke-width:1.6}
+.flow path.hit{fill:none;stroke:transparent;stroke-width:14;cursor:pointer}
+.flow.a-pulse  path.vis{stroke:var(--cyan);stroke-dasharray:2 7;animation:dash 1.6s linear infinite}
+.flow.a-signal path.vis{stroke:var(--cyan);stroke-dasharray:6 8;animation:dash 1.2s linear infinite}
+.flow.a-orbit  path.vis{stroke:var(--amber);stroke-dasharray:1 9;animation:dash 2.6s linear infinite}
+.flow.a-radar  path.vis{stroke:var(--ok);stroke-dasharray:10 6;animation:dash 2.2s linear infinite}
+.flow.a-launch-path path.vis{stroke:var(--coral);stroke-dasharray:12 5;animation:dash 1s linear infinite}
+.flow.needs-review path.vis{opacity:.5}
+@keyframes dash{to{stroke-dashoffset:-60}}
+@media (prefers-reduced-motion:reduce){
+  .flow path.vis,.node .halo,#sweepline{animation:none!important}}
+@media (max-width:820px){
+  #filters,#legend{max-width:180px}#details{width:230px}
+  h1{font-size:13px}#search{width:130px}}
+</style>
+</head>
+<body>
+<canvas id="stars"></canvas>
+<img id="bgimg" src="assets/moonbase-bg.jpg" alt="" onerror="this.remove()">
+<header>
+  <div class="patch"><img src="assets/mission-patch.png" alt="" onerror="this.replaceWith('☾')"></div>
+  <h1>inner-animal<small>Mission Control · Architecture Map</small></h1>
+  <input id="search" type="search" placeholder="⌕ scan stations…" autocomplete="off">
+  <div id="clockbox">LAST TELEMETRY<br><b>2026-07-19T19:53:30-04:00</b></div>
+</header>
+<div id="stage"></div>
+
+<div class="panel" id="filters"><h2>Station Filters</h2><div id="typechips"></div>
+  <h2 style="margin-top:10px">Confidence</h2><div id="confchips"></div></div>
+
+<div class="panel" id="details"><span id="close">[×]</span>
+  <h3 id="d-name"></h3><div class="meta" id="d-meta"></div>
+  <span class="badge" id="d-badge"></span><p id="d-desc" style="margin-top:8px"></p>
+  <div id="evidence"></div></div>
+
+<div class="panel" id="legend"><h2>Legend</h2>
+  <div class="row"><span class="sw" style="border-color:var(--cyan)"></span>signal / pulse (data)</div>
+  <div class="row"><span class="sw" style="border-color:var(--amber)"></span>orbit (session / runtime)</div>
+  <div class="row"><span class="sw" style="border-color:var(--coral)"></span>launch path (deploy / money)</div>
+  <div class="row"><span class="sw" style="border-color:var(--ok)"></span>radar (routing)</div>
+  <div class="row"><span class="badge confirmed">confirmed</span><span class="badge inferred">inferred</span>
+      <span class="badge needs-review">review</span></div></div>
+
+<div class="panel" id="review"><h2>Needs Review</h2><ul id="reviewlist"></ul></div>
+
+<script>
+const DATA = {"project": {"name": "inner-animal", "description": "", "visualTheme": "Mission Control", "lastUpdated": "2026-07-19T19:53:30-04:00", "generatedBy": "project-architecture skill"}, "components": [{"id": "backend", "name": "API Server", "type": "backend", "provider": "Node/Express", "description": "Express HTTP server: pages, JSON API, auth, webhooks.", "visualMetaphor": "Mission Control dome", "hub": true, "confidence": "confirmed", "evidence": ["package.json: dependency \"express\""]}, {"id": "database", "name": "SQLite", "type": "database", "provider": "better-sqlite3", "description": "Embedded SQLite datastore.", "visualMetaphor": "Underground data vault", "confidence": "needs-review", "evidence": ["package.json: dependency \"better-sqlite3\""]}, {"id": "domain", "name": "www.inneranimalquiz.com", "type": "domain", "provider": "DNS", "description": "Public domain www.inneranimalquiz.com pointing at production hosting.", "visualMetaphor": "Deep-space beacon", "confidence": "confirmed", "evidence": ["./robots.txt: www.inneranimalquiz.com"]}, {"id": "railway", "name": "Railway", "type": "hosting", "provider": "Railway", "description": "Production hosting; Dockerfile build, manual `railway up` deploys.", "visualMetaphor": "Launch platform", "confidence": "confirmed", "evidence": ["railway.json present"]}], "flows": [{"from": "backend", "to": "database", "confidence": "inferred", "evidence": ["both endpoints detected (backend, database)"], "label": "queries", "data": "users, profiles, scenes, plans", "trigger": "API requests", "animation": "pulse"}, {"from": "railway", "to": "backend", "confidence": "inferred", "evidence": ["both endpoints detected (railway, backend)"], "label": "hosts", "data": "runtime containers + env", "trigger": "always on", "animation": "orbit"}, {"from": "domain", "to": "railway", "confidence": "inferred", "evidence": ["both endpoints detected (domain, railway)"], "label": "DNS routing", "data": "public traffic", "trigger": "browser visits", "animation": "radar"}], "assets": [{"path": "moonbase-bg.jpg", "source": "local", "usage": "background", "notes": "shared moon-base theme, seeded on discovery ($0)"}, {"path": "mission-patch.png", "source": "local", "usage": "patch (header emblem)", "notes": "shared moon-base theme, seeded on discovery ($0)"}], "environments": [{"name": "local", "notes": "dev server run locally"}, {"name": "production", "notes": "Railway (manual `railway up`), single prod environment"}], "questions": ["'database' no longer has code evidence \u2014 still in use?"], "_evidenceNotes": []};
+const REPO = "/Users/chrisguiffre/Documents/Claude Code/inner-animal";
+
+/* ---------- starfield ---------- */
+const cv=document.getElementById('stars'),cx=cv.getContext('2d');
+function stars(){cv.width=innerWidth;cv.height=innerHeight;cx.fillStyle='#060b16';
+  cx.fillRect(0,0,cv.width,cv.height);let s=42;
+  for(let i=0;i<260;i++){s=(s*16807)%2147483647;const x=s/2147483647*cv.width;
+    s=(s*16807)%2147483647;const y=s/2147483647*cv.height;
+    s=(s*16807)%2147483647;const r=s/2147483647;
+    cx.fillStyle=`rgba(242,232,213,${0.15+r*0.5})`;cx.fillRect(x,y,r>0.93?2:1,r>0.93?2:1);}}
+stars();addEventListener('resize',()=>{stars();layout();});
+
+/* ---------- glyphs (one per station type) ---------- */
+const G={
+ backend:(s)=>`<path class="glyph" d="M${-30*s} 12 A${30*s} ${26*s} 0 0 1 ${30*s} 12 Z" fill="#16263f" stroke="var(--amber)" stroke-width="2"/>
+   <line x1="0" y1="${-16*s}" x2="0" y2="${-30*s}" stroke="var(--amber)" stroke-width="2"/>
+   <circle cx="0" cy="${-32*s}" r="3" fill="var(--cyan)"/>
+   <rect x="${-34*s}" y="12" width="${68*s}" height="5" fill="#1f3352"/>
+   <circle cx="${-12*s}" cy="2" r="3" fill="var(--cyan)"/><circle cx="0" cy="-2" r="3" fill="var(--amber)"/><circle cx="${12*s}" cy="2" r="3" fill="var(--cyan)"/>`,
+ frontend:()=>`<path class="glyph" d="M-22 12 L-16 -12 L16 -12 L22 12 Z" fill="#16263f" stroke="var(--cyan)" stroke-width="2"/>
+   <rect x="-13" y="-8" width="26" height="8" rx="2" fill="#0a1322" stroke="var(--cyan)"/>
+   <rect x="-26" y="12" width="52" height="4" fill="#1f3352"/>`,
+ database:()=>`<rect x="-24" y="8" width="48" height="6" fill="#1f3352"/>
+   <path class="glyph" d="M-16 8 L-16 -6 A16 8 0 0 1 16 -6 L16 8" fill="#16263f" stroke="var(--cyan)" stroke-width="2"/>
+   <ellipse cx="0" cy="-6" rx="16" ry="7" fill="#0a1322" stroke="var(--cyan)" stroke-width="2"/>
+   <line x1="-16" y1="1" x2="16" y2="1" stroke="var(--cyan)" opacity=".5"/>`,
+ hosting:()=>`<rect x="-24" y="10" width="48" height="5" fill="#1f3352"/>
+   <path class="glyph" d="M0 -26 L7 -8 L7 8 L-7 8 L-7 -8 Z" fill="#16263f" stroke="var(--coral)" stroke-width="2"/>
+   <path d="M-7 8 L-13 15 M7 8 L13 15" stroke="var(--coral)" stroke-width="2" fill="none"/>
+   <line x1="14" y1="-24" x2="14" y2="10" stroke="var(--dim)" stroke-width="2"/>
+   <line x1="7" y1="-18" x2="14" y2="-18" stroke="var(--dim)"/>`,
+ domain:()=>`<line class="glyph" x1="0" y1="14" x2="0" y2="-22" stroke="var(--amber)" stroke-width="2"/>
+   <path d="M-10 -14 A14 14 0 0 1 10 -14" fill="none" stroke="var(--cyan)"/>
+   <path d="M-15 -10 A21 21 0 0 1 15 -10" fill="none" stroke="var(--cyan)" opacity=".6"/>
+   <circle cx="0" cy="-22" r="3.5" fill="var(--amber)"/><path d="M-8 14 L8 14 L4 8 L-4 8 Z" fill="#1f3352"/>`,
+ 'source-control':()=>`<path class="glyph" d="M-24 12 L-24 -4 A24 18 0 0 1 24 -4 L24 12 Z" fill="#16263f" stroke="var(--cyan)" stroke-width="2"/>
+   <rect x="-9" y="-4" width="18" height="16" fill="#0a1322" stroke="var(--cyan)"/>
+   <line x1="-3" y1="-4" x2="-3" y2="12" stroke="var(--cyan)" opacity=".5"/>
+   <line x1="3" y1="-4" x2="3" y2="12" stroke="var(--cyan)" opacity=".5"/>`,
+ payments:()=>`<rect class="glyph" x="-13" y="-20" width="26" height="34" rx="3" fill="#16263f" stroke="var(--amber)" stroke-width="2"/>
+   <rect x="-8" y="-15" width="16" height="10" fill="#0a1322" stroke="var(--cyan)"/>
+   <circle cx="0" cy="4" r="2" fill="var(--amber)"/><rect x="-6" y="8" width="12" height="2" fill="var(--amber)"/>`,
+ email:()=>`<path class="glyph" d="M-16 -2 A16 16 0 0 1 16 -2 L0 -2 Z" fill="#16263f" stroke="var(--cyan)" stroke-width="2" transform="rotate(-38)"/>
+   <line x1="0" y1="0" x2="0" y2="14" stroke="var(--dim)" stroke-width="2"/>
+   <line x1="-8" y1="14" x2="8" y2="14" stroke="var(--dim)" stroke-width="2"/>
+   <circle cx="9" cy="-13" r="2.5" fill="var(--amber)"/>`,
+ auth:()=>`<circle class="glyph" r="17" fill="#16263f" stroke="var(--cyan)" stroke-width="2"/>
+   <circle r="7" fill="#0a1322" stroke="var(--amber)" stroke-width="2"/>
+   <g stroke="var(--cyan)" opacity=".7"><line y1="-17" y2="-7"/><line y1="7" y2="17"/>
+   <line x1="-17" x2="-7"/><line x1="7" x2="17"/></g>`,
+ ai:()=>`<path class="glyph" d="M-18 10 A18 18 0 0 1 18 10 Z" fill="#16263f" stroke="var(--cyan)" stroke-width="2"/>
+   <line x1="2" y1="-14" x2="14" y2="-26" stroke="var(--amber)" stroke-width="3"/>
+   <circle cx="15" cy="-27" r="2.5" fill="var(--amber)"/><rect x="-22" y="10" width="44" height="4" fill="#1f3352"/>`,
+ analytics:()=>`<circle class="glyph" r="16" fill="#0a1322" stroke="var(--ok)" stroke-width="2"/>
+   <circle r="9" fill="none" stroke="var(--ok)" opacity=".4"/>
+   <line id="sweepline" x1="0" y1="0" x2="14" y2="-7" stroke="var(--ok)" stroke-width="1.5">
+   <animateTransform attributeName="transform" type="rotate" from="0" to="360" dur="4s" repeatCount="indefinite"/></line>`,
+ other:()=>`<rect class="glyph" x="-10" y="-10" width="20" height="20" fill="#16263f" stroke="var(--cyan)" stroke-width="2"/>
+   <rect x="-24" y="-6" width="10" height="12" fill="#1f3352" stroke="var(--cyan)"/>
+   <rect x="14" y="-6" width="10" height="12" fill="#1f3352" stroke="var(--cyan)"/>`};
+G['asset-source']=G.ai; G['external-api']=G.other; G.storage=G.other; G.cloud=G.other; G.worker=G.other;
+
+/* ---------- layout + render ---------- */
+const stage=document.getElementById('stage');
+const comps=DATA.components||[], flows=DATA.flows||[];
+const hub=comps.find(c=>c.hub)||comps.find(c=>c.type==='backend')||comps[0];
+const ring=comps.filter(c=>c!==hub);
+const pos={}, iconAssets={};
+(DATA.assets||[]).forEach(a=>{const m=/^icon:(.+)$/.exec(a.usage||'');if(m)iconAssets[m[1]]=a.path;});
+
+function layout(){
+  const W=stage.clientWidth,H=stage.clientHeight;
+  if(!hub){stage.innerHTML='<div style="display:grid;place-items:center;height:100%;'+
+    'font-family:var(--mono);color:var(--dim)">NO STATIONS DETECTED — run discovery</div>';return;}
+  pos[hub.id]=[W/2,H/2];
+  const rx=Math.min(W*0.36,520), ry=Math.min(H*0.36,300);
+  ring.forEach((c,i)=>{const a=-Math.PI/2+i*2*Math.PI/ring.length;
+    pos[c.id]=[W/2+rx*Math.cos(a),H/2+ry*Math.sin(a)];});
+  render();
+}
+function esc(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');}
+function nodeSVG(c){
+  const [x,y]=pos[c.id], isHub=c===hub, s=isHub?1.6:1;
+  const icon=iconAssets[c.id]
+    ?`<image href="assets/${esc(iconAssets[c.id])}" x="${-30*s}" y="${-30*s}" width="${60*s}" height="${60*s}"/>`
+    :((G[c.type]||G.other)(s));
+  return `<g class="node ${c.confidence||''}" id="n-${esc(c.id)}" data-id="${esc(c.id)}"
+    transform="translate(${x},${y})">
+    <circle class="halo" r="${isHub?58:40}"/>${icon}
+    <text y="${isHub?58:36}">${esc(c.name)}</text>
+    <text class="sub" y="${(isHub?58:36)+13}">${esc(c.provider||c.type)}</text></g>`;
+}
+function flowSVG(f,i){
+  const a=pos[f.from],b=pos[f.to]; if(!a||!b)return '';
+  const dx=b[0]-a[0],dy=b[1]-a[1],len=Math.hypot(dx,dy)||1;
+  const t0=(f.from===hub.id?64:46)/len, t1=1-(f.to===hub.id?64:46)/len;
+  const p0=[a[0]+dx*t0,a[1]+dy*t0], p1=[a[0]+dx*t1,a[1]+dy*t1];
+  const mx=(p0[0]+p1[0])/2 - dy/len*28, my=(p0[1]+p1[1])/2 + dx/len*28;
+  const d=`M${p0[0]},${p0[1]} Q${mx},${my} ${p1[0]},${p1[1]}`;
+  return `<g class="flow a-${esc(f.animation||'signal')} ${f.confidence||''}" data-i="${i}">
+    <path class="vis" d="${d}" marker-end="url(#arrow)"/><path class="hit" d="${d}"/></g>`;
+}
+function render(){
+  stage.innerHTML=`<svg id="map">
+   <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7"
+     markerHeight="7" orient="auto-start-reverse">
+     <path d="M0 0 L10 5 L0 10 z" fill="var(--cream)" opacity=".8"/></marker></defs>
+   <g id="flows">${flows.map(flowSVG).join('')}</g>
+   <g id="nodes">${comps.map(nodeSVG).join('')}</g></svg>`;
+  applyState();
+  stage.querySelectorAll('.node').forEach(n=>n.onclick=()=>select('c',n.dataset.id));
+  stage.querySelectorAll('.flow').forEach(n=>n.onclick=()=>select('f',+n.dataset.i));
+}
+
+/* ---------- filters / search / details ---------- */
+const typesOn=new Set(comps.map(c=>c.type)), confOn=new Set(['confirmed','inferred','needs-review']);
+let query='';
+function chips(el,vals,setOn,cls){
+  el.innerHTML=`<span class="chip tog" data-tog="1">◨ all/none</span>`+
+    vals.map(v=>`<span class="chip ${cls} on" data-v="${esc(v)}">${esc(v)}</span>`).join('');
+  const sync=()=>el.querySelectorAll('.chip[data-v]').forEach(ch=>ch.classList.toggle('on',setOn.has(ch.dataset.v)));
+  el.querySelectorAll('.chip[data-v]').forEach(ch=>ch.onclick=()=>{const v=ch.dataset.v;
+    setOn.has(v)?setOn.delete(v):setOn.add(v);ch.classList.toggle('on');applyState();});
+  el.querySelector('.chip.tog').onclick=()=>{const anyOff=vals.some(v=>!setOn.has(v));
+    vals.forEach(v=>anyOff?setOn.add(v):setOn.delete(v));sync();applyState();};}
+chips(document.getElementById('typechips'),[...new Set(comps.map(c=>c.type))],typesOn,'');
+chips(document.getElementById('confchips'),['confirmed','inferred','needs-review'],confOn,'conf');
+document.getElementById('search').oninput=e=>{query=e.target.value.toLowerCase();applyState();};
+
+function matches(c){return !query||`${c.name} ${c.provider} ${c.type} ${c.description}`
+  .toLowerCase().includes(query);}
+function visible(c){return typesOn.has(c.type)&&confOn.has(c.confidence||'inferred');}
+function applyState(){
+  const vis={};
+  comps.forEach(c=>{vis[c.id]=visible(c);const n=document.getElementById('n-'+c.id);if(!n)return;
+    n.classList.toggle('hidden',!vis[c.id]);n.classList.toggle('dim',vis[c.id]&&!matches(c));});
+  document.querySelectorAll('.flow').forEach(el=>{const f=flows[+el.dataset.i];
+    const on=vis[f.from]&&vis[f.to]&&confOn.has(f.confidence||'inferred');
+    el.classList.toggle('hidden',!on);
+    el.classList.toggle('dim',on&&query&&!(matches(comps.find(c=>c.id===f.from)||{})||
+      matches(comps.find(c=>c.id===f.to)||{})));});
+}
+const D=document.getElementById('details');
+function select(kind,key){
+  document.querySelectorAll('.node.sel').forEach(n=>n.classList.remove('sel'));
+  let name,meta,badge,desc,ev;
+  if(kind==='c'){const c=comps.find(x=>x.id===key);if(!c)return;
+    document.getElementById('n-'+key)?.classList.add('sel');
+    name=c.name;meta=`${c.type} · ${c.provider||'—'} · ${c.visualMetaphor||''}`;
+    badge=c.confidence;desc=c.description;ev=c.evidence||[];}
+  else{const f=flows[key];if(!f)return;
+    name=`${f.from} → ${f.to}: ${f.label||'flow'}`;
+    meta=`data: ${f.data||'—'} · trigger: ${f.trigger||'—'}`;
+    badge=f.confidence;desc='';ev=f.evidence||[];}
+  document.getElementById('d-name').textContent=name;
+  document.getElementById('d-meta').textContent=meta;
+  const b=document.getElementById('d-badge');b.textContent=badge||'inferred';
+  b.className='badge '+(badge||'inferred');
+  document.getElementById('d-desc').textContent=desc||'';
+  document.getElementById('evidence').innerHTML=
+    ev.length?ev.map(e=>{const m=/^([\w@./-]+\.\w+)/.exec(e);
+      return m?`<div><a href="vscode://file${encodeURI(REPO+'/'+m[1])}" title="open in VS Code">${esc(m[1])}</a>${esc(e.slice(m[1].length))}</div>`
+              :`<div>${esc(e)}</div>`;}).join(''):'<div>no recorded evidence</div>';
+  D.classList.add('open');
+}
+document.getElementById('close').onclick=()=>D.classList.remove('open');
+
+/* ---------- needs-review panel (interactive) ---------- */
+const rl=document.getElementById('reviewlist');
+/* ponytail: reviewed state lives in localStorage (shared origin with the fleet
+   shell), survives map re-renders; keys go stale only if item text changes */
+const RK='fc-reviewed:'+((DATA.project||{}).name||'');
+let reviewed;try{reviewed=new Set(JSON.parse(localStorage.getItem(RK)||'[]'))}catch(e){reviewed=new Set()}
+const saveRev=()=>{try{localStorage.setItem(RK,JSON.stringify([...reviewed]))}catch(e){}
+  /* tell the Fleet Command shell directly (when embedded), so its sidebar count
+     updates without relying on the cross-frame storage event firing */
+  try{parent!==window&&parent.postMessage({fc:'reviewed',name:(DATA.project||{}).name},'*')}catch(e){}};
+const rvItems=[
+  ...comps.filter(c=>c.confidence==='needs-review').map(c=>({k:'c:'+c.id,warn:1,
+    lbl:'station '+c.name,why:(c.description||'').split('. ')[0],go:()=>select('c',c.id)})),
+  ...flows.map((f,i)=>({f,i})).filter(o=>o.f.confidence==='needs-review').map(o=>({k:'f:'+o.i,warn:1,
+    lbl:`flow ${o.f.from} → ${o.f.to}`,why:o.f.label||'',go:()=>select('f',o.i)})),
+  ...(DATA.questions||[]).map(q=>{const m=/'([^']+)'/.exec(q),c=m&&comps.find(x=>x.id===m[1]);
+    return {k:'q:'+q,warn:0,lbl:q,why:c?'source: station '+c.name:'',go:c?()=>select('c',c.id):null};})];
+function drawReview(){
+  const open=rvItems.filter(o=>!reviewed.has(o.k)),done=rvItems.filter(o=>reviewed.has(o.k));
+  document.querySelector('#review h2').textContent=
+    open.length?`Needs Review (${open.length})`:'Needs Review';
+  rl.innerHTML=(open.length?open.map(o=>
+    `<li class="${o.warn?'warn':''}" data-k="${esc(o.k)}"><button title="mark reviewed">✓</button>
+     <span class="lbl">${esc(o.lbl)}${o.why?`<span class="why">${esc(o.why)}</span>`:''}</span></li>`).join('')
+    :'<li>all systems nominal ✓</li>')
+   +(done.length?`<details><summary>REVIEWED (${done.length})</summary>${done.map(o=>
+     `<li class="done" data-k="${esc(o.k)}"><button title="un-review">↺</button>
+      <span class="lbl">${esc(o.lbl)}</span></li>`).join('')}</details>`:'');
+  rl.querySelectorAll('li[data-k]').forEach(li=>{
+    const o=rvItems.find(x=>x.k===li.dataset.k);if(!o)return;
+    li.querySelector('button').onclick=e=>{e.stopPropagation();
+      reviewed.has(o.k)?reviewed.delete(o.k):reviewed.add(o.k);saveRev();drawReview();};
+    if(o.go&&!li.classList.contains('done')){const lb=li.querySelector('.lbl');
+      lb.onclick=o.go;lb.title='inspect source on map';}});
+}
+drawReview();
+
+layout();
+</script>
+</body>
+</html>

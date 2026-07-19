@@ -1,0 +1,1394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Inner Animal — What's Your Inner Animal? Free Personality Quiz</title>
+<meta name="description" content="A free personality quiz that matches you to your inner animal from 130 real species across Land, Air, and Water — from familiar favorites to genuinely bizarre creatures. No sign-up to play."/>
+<link rel="canonical" href="https://www.inneranimalquiz.com/"/>
+<meta name="robots" content="index, follow"/>
+<meta name="theme-color" content="#6d4bd4"/>
+<link rel="icon" href="favicon.svg" type="image/svg+xml"/>
+<link rel="apple-touch-icon" href="apple-touch-icon.png"/>
+<!-- Open Graph -->
+<meta property="og:type" content="website"/>
+<meta property="og:site_name" content="Inner Animal"/>
+<meta property="og:title" content="Inner Animal — What's Your Inner Animal?"/>
+<meta property="og:description" content="A free personality quiz matching you to one of 130 animals across Land, Air, and Water. Take it in two minutes — no sign-up."/>
+<meta property="og:url" content="https://www.inneranimalquiz.com/"/>
+<meta property="og:image" content="https://www.inneranimalquiz.com/og-image.png"/>
+<meta property="og:image:width" content="1200"/>
+<meta property="og:image:height" content="630"/>
+<!-- Twitter -->
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:title" content="Inner Animal — What's Your Inner Animal?"/>
+<meta name="twitter:description" content="A free personality quiz matching you to one of 130 animals across Land, Air, and Water. No sign-up."/>
+<meta name="twitter:image" content="https://www.inneranimalquiz.com/og-image.png"/>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Inner Animal",
+  "url": "https://www.inneranimalquiz.com/",
+  "applicationCategory": "GameApplication",
+  "operatingSystem": "Any",
+  "description": "A free personality quiz that matches you to your inner animal from 130 real species across Land, Air, and Water.",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+}
+</script>
+<!-- build: v1.3 warm redesign + full coverage + webp -->
+<style>
+  :root{
+    /* Warm paper light theme — friendly, illustration-forward, shareable */
+    --bg:#faf8f3;
+    --panel:#ffffff;
+    --panel-2:#f5f2ea;
+    --border:#e8e1d4;
+    --text:#231f1a;
+    --muted:#726b5f;
+    --accent:#6d4bd4;        /* single disciplined violet — "personality / mystery" */
+    --accent-ink:#ffffff;
+    --accent-soft:#efeafb;
+    --accent2:#3f9b6e;       /* used in progress gradient */
+    --good:#2f9e63;
+    --danger:#cf4a3c;
+    /* Realm = meaning (the signature color system) */
+    --land:#2f9e63;   --land-tint:#e4f4ea;
+    --air:#2f7fc4;    --air-tint:#e2eefb;
+    --water:#6a53c9;  --water-tint:#ece7f8;
+    /* Rarity tiers */
+    --r-common:#2f9e63; --r-uncommon:#2f7fc4; --r-unique:#6d4bd4; --r-bizarre:#d97a2b;
+    /* Elevation — hairline by default, one soft shadow reserved for reveal/hero */
+    --shadow-soft:0 6px 20px rgba(60,45,20,.10);
+    --shadow-card:0 1px 2px rgba(60,45,20,.06);
+    --radius:12px; --radius-lg:16px;
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:.001ms!important;transition-duration:.001ms!important}
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,Segoe UI,Arial,sans-serif;line-height:1.5;-webkit-font-smoothing:antialiased}
+  /* Visible keyboard focus everywhere (quality floor) */
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+  header{position:sticky;top:0;background:rgba(250,248,243,.85);backdrop-filter:blur(10px);border-bottom:1px solid var(--border);z-index:5}
+  .wrap{max-width:1120px;margin:0 auto;padding:14px 20px}
+  .brand{display:flex;gap:10px;align-items:center}
+  .brand h1{font-size:21px;margin:0 0 0 2px;font-weight:700;letter-spacing:-.2px;font-family:"SF Pro Rounded","Nunito",Inter,system-ui,sans-serif}
+  .logo{width:36px;height:36px}
+  /* Nav: horizontal scroll on mobile instead of wrapping (keeps sticky bar short) */
+  nav{display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:2px}
+  nav::-webkit-scrollbar{display:none}
+  nav button{appearance:none;background:transparent;border:1px solid transparent;color:var(--muted);padding:8px 12px;border-radius:999px;cursor:pointer;transition:.15s;white-space:nowrap;font-weight:600;font-size:14px}
+  nav button:hover{background:var(--panel-2);color:var(--text)}
+  nav button.active{background:var(--accent-soft);color:var(--accent);border-color:transparent}
+  h2{font-size:28px;font-weight:700;letter-spacing:-.4px;line-height:1.15;margin:.2em 0}
+  h3{font-size:20px;font-weight:650;letter-spacing:-.2px;margin:.2em 0}
+  main .panel{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;margin:18px 0;box-shadow:var(--shadow-card)}
+  .row{display:grid;gap:12px}
+  @media(min-width:760px){.row.cols-2{grid-template-columns:1fr 1fr}.row.cols-3{grid-template-columns:repeat(3,1fr)}.row.cols-4{grid-template-columns:repeat(4,1fr)}}
+  .card,.opt{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:14px;transition:transform .12s ease,box-shadow .12s ease,border-color .12s ease;display:flex;flex-direction:column;gap:8px;position:relative;}
+  .card:hover,.opt:hover{transform:translateY(-2px);box-shadow:var(--shadow-soft);border-color:var(--accent)}
+  /* .opt is rendered as a real <button> for keyboard access — reset button chrome */
+  .opt{cursor:pointer;text-align:left;font:inherit;color:inherit;width:100%}
+  .opt.selected{outline:2px solid var(--accent);outline-offset:2px;border-color:var(--accent)}
+  .card h3,.card h4{margin:2px 0 0 0}
+  .muted{color:var(--muted)}
+  .pill{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);background:var(--panel-2);color:var(--muted);padding:4px 9px;border-radius:999px;font-size:12px;font-weight:500}
+  .traits{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+  .big{font-size:18px;font-weight:600}
+  .small{font-size:12px}
+  .right{text-align:right}
+  .btn{appearance:none;background:var(--panel);border:1px solid var(--border);color:var(--text);padding:10px 15px;border-radius:10px;cursor:pointer;transition:.15s;font-weight:600;font-size:14px}
+  .btn:hover{background:var(--panel-2);border-color:var(--muted)}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+  .btn.primary:hover{background:#5a3cbc;border-color:#5a3cbc}
+  .btn.ghost{background:transparent;border-color:transparent;color:var(--muted)}
+  .btn.ghost:hover{background:var(--panel-2);color:var(--text)}
+  .btn.small{padding:6px 10px;font-size:12px}
+  
+  /* New Delete Button Style */
+  .btn-delete {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 6px;
+    transition: color 0.2s, background 0.2s;
+  }
+  .btn-delete:hover {
+    color: var(--danger);
+    background: rgba(239, 68, 68, 0.1);
+  }
+
+  .controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin-top:14px}
+  .progress{height:8px;background:var(--panel-2);border:1px solid var(--border);border-radius:999px;overflow:hidden}
+  .progress>div{height:100%;background:linear-gradient(90deg,var(--accent),#9d7be8);width:0%;transition:width .4s cubic-bezier(.4,0,.2,1)}
+  .lane-pick{display:flex;gap:10px}
+  /* Slider: flexible + on-brand thumb/track */
+  input[type=range]{width:100%;max-width:320px;-webkit-appearance:none;appearance:none;height:6px;border-radius:999px;background:linear-gradient(90deg,var(--land) 0%,var(--accent) 50%,var(--r-bizarre) 100%);outline-offset:4px}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:22px;height:22px;border-radius:50%;background:#fff;border:2px solid var(--accent);box-shadow:var(--shadow-soft);cursor:pointer}
+  input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:#fff;border:2px solid var(--accent);box-shadow:var(--shadow-soft);cursor:pointer}
+  .grid-cards{display:grid;gap:12px}
+  @media(min-width:760px){.grid-cards.cols-3{grid-template-columns:repeat(3,1fr)}}
+  footer{color:var(--muted);padding:26px 0}
+  .range-wrap{display:flex;flex-direction:column;align-items:flex-start;width:100%;max-width:320px}
+  .ticks{display:flex;justify-content:space-between;width:100%;max-width:320px;margin-top:6px;font-size:12px;color:var(--muted)}
+  .thumb{aspect-ratio:16/9;width:100%;border-radius:10px;overflow:hidden;border:1px solid var(--border);background:var(--panel-2)}
+  .thumb svg,
+  .thumb img{display:block;width:100%;height:100%;object-fit:cover}
+  .hero-thumb{aspect-ratio:1/1;border-radius:16px}
+  /* Motion: view + reveal */
+  @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  @keyframes pop{0%{opacity:0;transform:scale(.94)}60%{transform:scale(1.02)}100%{opacity:1;transform:scale(1)}}
+  .view-enter{animation:fadeUp .28s ease both}
+  .reveal-pop{animation:pop .5s cubic-bezier(.2,.7,.3,1.2) both}
+
+.sr-only{
+  position:absolute;
+  width:1px;
+  height:1px;
+  padding:0;
+  margin:-1px;
+  overflow:hidden;
+  clip:rect(0,0,0,0);
+  white-space:nowrap;
+  border:0;
+}
+
+  /* Zoo view: layout, search, cards */
+  .zoo-controls{
+    display:flex;
+    gap:8px;
+    align-items:center;
+    margin-top:12px;
+  }
+  .zoo-search{
+    flex:1;
+  }
+  .zoo-search input{
+    width:100%;
+    padding:9px 16px;
+    border-radius:999px;
+    border:1px solid var(--border);
+    background:var(--panel);
+    color:var(--text);
+    font-size:.9rem;
+  }
+  .zoo-search input:focus{border-color:var(--accent);outline:none;box-shadow:0 0 0 3px var(--accent-soft)}
+  .zoo-search input::placeholder{
+    color:var(--muted);
+  }
+
+  /* Zoo: realm stats row */
+  .zoo-stats{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    margin:12px 0 4px;
+  }
+  .zoo-stat-card{
+    flex:1 1 0;
+    min-width:90px;
+    padding:10px 12px;
+    border-radius:12px;
+    border:1px solid var(--border);
+    background:var(--panel);
+    box-shadow:var(--shadow-card);
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+  }
+  .zoo-stat-label{
+    font-size:.7rem;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    color:var(--muted);
+  }
+  .zoo-stat-value{
+    font-size:1.1rem;
+    font-weight:600;
+  }
+
+  /* Zoo: realm + rarity headers */
+  .zoo-section{
+    margin-top:16px;
+  }
+  .zoo-section-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    cursor:pointer;
+    padding:10px 14px;
+    margin-top:12px;
+    border-radius:12px;
+    background:var(--panel-2);
+    border:1px solid var(--border);
+    border-left:4px solid var(--accent);
+  }
+  /* Realm = meaning: tint each realm section by its color */
+  .zoo-section-header[data-realm="land"]{border-left-color:var(--land);background:var(--land-tint)}
+  .zoo-section-header[data-realm="air"]{border-left-color:var(--air);background:var(--air-tint)}
+  .zoo-section-header[data-realm="water"]{border-left-color:var(--water);background:var(--water-tint)}
+  .zoo-section-header h3{
+    margin:0;
+    font-size:.9rem;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    color:var(--text);
+  }
+
+  .zoo-bucket-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    cursor:pointer;
+    margin-bottom:6px;
+    gap:6px;
+    padding:7px 10px;
+    border-radius:10px;
+    background:var(--panel-2);
+    border:1px solid var(--border);
+  }
+  .zoo-bucket-header h4{
+    margin:0;
+    font-size:.8rem;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+  }
+  .zoo-bucket-header .muted{
+    flex:1;
+    font-size:.75rem;
+  }
+
+  .zoo-grid{
+    display:grid;
+    gap:12px;
+    margin-top:8px;
+  }
+
+  .zoo-cards{
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:10px;
+    margin-top:6px;
+  }
+  @media(max-width:720px){
+    .zoo-cards{grid-template-columns:repeat(2,minmax(0,1fr));}
+  }
+
+  .zoo-card{
+    position:relative;
+    border-radius:14px;
+    border:1px solid var(--border);
+    padding:8px;
+    background:var(--panel);
+    box-shadow:var(--shadow-card);
+    transition:transform .12s ease,box-shadow .12s ease;
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+  }
+  .zoo-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-soft)}
+  .zoo-card-body{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+  }
+  .zoo-card-title{
+    font-weight:600;
+    font-size:.9rem;
+  }
+
+  .zoo-mini{
+    width:100%;
+    aspect-ratio:1/1;
+    border-radius:10px;
+    overflow:hidden;
+    border:1px solid var(--border);
+    background:var(--panel-2);
+  }
+  .zoo-mini img{
+    display:block;
+    width:100%;
+    height:100%;
+    object-fit:cover;
+  }
+
+  .zoo-tags{
+    display:flex;
+    flex-wrap:wrap;
+    gap:4px;
+    margin-top:2px;
+  }
+
+  .zoo-pager{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-top:8px;
+    gap:8px;
+    font-size:.8rem;
+  }
+
+
+/* --- DYNAMIC HERO BANNERS (CSS gradients — no heavy images, theme-matched) --- */
+.hero-banner{
+  width:100%;
+  border-radius:var(--radius-lg);
+  transition: background .4s ease, border-color .4s ease;
+  height:clamp(96px,15vw,168px);
+  margin:12px auto 10px;
+  border:1px solid var(--border);
+  box-shadow: var(--shadow-card);
+  /* subtle paw-dot texture layered over the section gradient */
+  background:
+    radial-gradient(circle at 18% 120%, rgba(255,255,255,.5), transparent 45%),
+    linear-gradient(120deg, var(--land-tint), var(--air-tint) 55%, var(--water-tint));
+}
+
+/* 1. Home / Menagerie — all three realms blended (the "whole zoo") */
+.hero-banner.home{background:
+  radial-gradient(circle at 85% -20%, rgba(255,255,255,.6), transparent 50%),
+  linear-gradient(120deg, var(--land-tint), var(--air-tint) 55%, var(--water-tint))}
+
+/* 2. Quiz / Mystery — accent violet */
+.hero-banner.quiz{background:linear-gradient(120deg, var(--accent-soft), #f0ebff 60%, #e7f0fb);border-color:#e0d7f7}
+
+/* 3. Hall / Gallery — warm amber */
+.hero-banner.hall{background:linear-gradient(120deg, #fbeede, #fdf4e6 60%, #fff);border-color:#f0e0c6}
+
+/* 4. The Zoo / Nature — land green */
+.hero-banner.zoo{background:linear-gradient(120deg, var(--land-tint), #eef7f0 60%, #fff);border-color:#d5ecdd}
+
+/* 5. Users / Community — warm coral */
+.hero-banner.users{background:linear-gradient(120deg, #fce4dd, #fdeee9 60%, #fff);border-color:#f4d9d0}
+
+/* 6. About / Info — calm neutral */
+.hero-banner.about{background:linear-gradient(120deg, var(--panel-2), #f8f5ee 60%, #fff)}
+
+/* Results — celebratory violet */
+.hero-banner.results{background:linear-gradient(120deg, var(--accent-soft), #efe7ff 55%, var(--air-tint));border-color:#e0d7f7}
+
+@media (max-width:720px){
+  .hero-banner{
+    border-radius:12px;
+    height:clamp(84px,24vw,140px);
+  }
+}
+
+</style>
+</head>
+<body>
+<!-- Added ID for targeting, default class 'home' -->
+<section id="main-banner" class="hero-banner home" role="img" aria-label="Inner Animal Banner">
+  <span class="sr-only">Visual banner for the current section</span>
+</section>
+
+<header>
+  <div class="wrap" style="display:flex;justify-content:space-between;align-items:center;gap:14px;">
+    <div class="brand">
+      <svg class="logo" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-label="Inner Animal logo">
+        <rect width="64" height="64" rx="14" fill="#6d4bd4"/>
+        <g fill="#ffffff">
+          <ellipse cx="32" cy="41" rx="12.5" ry="10.5"/>
+          <circle cx="17" cy="29" r="5.5"/>
+          <circle cx="26" cy="20" r="5.5"/>
+          <circle cx="38" cy="20" r="5.5"/>
+          <circle cx="47" cy="29" r="5.5"/>
+        </g>
+      </svg>
+      <h1>Inner Animal</h1>
+    </div>
+    <nav>
+  	<button id="nav-home" class="active" onclick="App.nav('home')">Home</button>
+  	<button id="nav-quiz" onclick="App.nav('quiz')">Quiz</button>
+  	<button id="nav-hall" onclick="App.nav('hall')">Hall</button>
+  	<button id="nav-zoo" onclick="App.nav('zoo')">The Zoo</button>
+  	<button id="nav-users" onclick="App.nav('users')">Users</button>
+  	<button id="nav-about" onclick="App.nav('about')">About</button>
+</nav>
+
+  </div>
+</header>
+<main class="wrap" id="app"></main>
+<footer class="wrap small">© 2025 Inner Animal. This playful quiz uses “animal archetype” language out of respect for Indigenous cultural terms.</footer>
+
+<script src="animal_data.js"></script>
+<script src="quiz_logic.js"></script>
+
+<script>
+/* getRealm, TRIADS, LANE_TRIADS, ANTONYM, rarityBias, normalize,
+   facetOverlapRatio, shadowCandidate, computeShortlist, flattenTraits and
+   flattenFacets now live in quiz_logic.js (loaded above) so they can be unit
+   tested in Node; they are visible here as classic-script globals. */
+
+function rarityBucket(lane){
+  const map = {common:'Common', less_common:'Uncommon', unusual:'Unique', bizarre:'Bizarre'};
+  return map[lane] || 'Common';
+}
+
+</script>
+
+<Script>
+/* ---------- Artwork: inline SVG badges ---------- */
+function hashColorPair(key){
+  // simple deterministic hash → hues
+  let h=0; for(let i=0;i<key.length;i++) h=(h*31 + key.charCodeAt(i))>>>0;
+  const hue1 = h % 360, hue2 = (h*7)%360;
+  return [`hsl(${hue1} 70% 55%)`,`hsl(${hue2} 65% 45%)`];
+}
+function AnimalSVGById(id, title){
+  const [c1,c2]=hashColorPair(id);
+  const label = (title||id||'?').split(' ')[0];
+  return `
+  <div class="thumb">
+    <svg viewBox="0 0 640 360" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${label} artwork">
+      <defs>
+        <linearGradient id="bg-${id}" x1="0" x2="1">
+          <stop offset="0" stop-color="${c1}"/><stop offset="1" stop-color="${c2}"/>
+        </linearGradient>
+      </defs>
+      <rect width="640" height="360" rx="18" fill="url(#bg-${id})"/>
+      <!-- abstract animal silhouette: ear + head + nose -->
+      <circle cx="350" cy="160" r="90" fill="rgba(0,0,0,.12)"/>
+      <circle cx="415" cy="120" r="40" fill="rgba(0,0,0,.10)"/>
+      <circle cx="312" cy="190" r="26" fill="rgba(0,0,0,.16)"/>
+      <!-- wave -->
+      <path d="M0,260 C140,220 220,320 360,290 C480,266 560,320 640,300 L640,360 L0,360 Z" fill="rgba(0,0,0,.18)"/>
+      <text x="28" y="56" font-family="Inter,system-ui,Arial" font-weight="700" font-size="34" fill="rgba(255,255,255,.92)">${label}</text>
+    </svg>
+  </div>`;
+}
+function animalImageUrl(id){
+  if(!id) return null;
+  // images/<animal-id>.webp  (e.g., images/gray_squirrel.webp)
+  return `images/${id}.webp`;
+}
+
+// Fallback: if an animal PNG is missing/broken, swap in the generated SVG art
+// instead of showing a broken-image icon. Runs in global scope from onerror.
+function AnimalImgFallback(img){
+  if(img.dataset.fellBack) return; // guard against loops
+  img.dataset.fellBack = '1';
+  const box = img.closest('.thumb, .hero-thumb, .zoo-mini') || img.parentNode;
+  if(box) box.innerHTML = AnimalSVGById(img.dataset.animalId, img.dataset.animalTitle);
+}
+
+function AnimalCardArt(id, title, variant){
+  const safeId = id || 'unknown';
+  const label = (title || safeId || 'Inner animal').replace(/"/g,'&quot;');
+  const url = animalImageUrl(safeId);
+  const cls = variant === 'hero' ? 'thumb hero-thumb' : 'thumb';
+  return `
+    <div class="${cls}">
+      <img src="${url}" alt="${label} illustration" loading="lazy" decoding="async"
+           data-animal-id="${safeId}" data-animal-title="${label}"
+           onerror="AnimalImgFallback(this)"/>
+    </div>`;
+}
+
+/* ---------- Utility ---------- */
+function locomotionToRealm(locomotions){const s=new Set(locomotions||[]); if(s.has('flyer')||s.has('glider')) return 'air'; if(s.has('swimmer')||s.has('diver')) return 'water'; return 'land';}
+// rarityBias now lives in quiz_logic.js (loaded above).
+// Display order in The Zoo
+const RARITY_BUCKETS = ['Common','Uncommon','Unique','Bizarre'];
+const REALM_LABELS = { land:'Land', air:'Air', water:'Water' };
+
+/* ---------- Zoo Helper Functions ----------
+   flattenTraits and flattenFacets now live in quiz_logic.js (loaded above). */
+
+// UI state for The Zoo (expand/collapse, paging, search, add-animal flow)
+const ZooState = {
+  search: '',
+  // Start all closed
+  realmOpen: { land:false, air:false, water:false },
+  // Start all buckets closed
+  bucketOpen: {
+    land:  { Common:false, Uncommon:false, Unique:false, Bizarre:false },
+    air:   { Common:false, Uncommon:false, Unique:false, Bizarre:false },
+    water: { Common:false, Uncommon:false, Unique:false, Bizarre:false }
+  },
+  // Pages track independently
+  page: {
+    land:  { Common:0, Uncommon:0, Unique:0, Bizarre:0 },
+    air:   { Common:0, Uncommon:0, Unique:0, Bizarre:0 },
+    water: { Common:0, Uncommon:0, Unique:0, Bizarre:0 }
+  }
+};
+window.ZooState = ZooState;
+
+const ZooHandlers = {
+  searchInput(value) {
+    ZooState.search = value || '';
+  },
+
+  searchSubmit(input) {
+    const val = (input && input.value || '').trim();
+    ZooState.search = val;
+    
+    // If searching, open everything so results are visible
+    if (val) {
+      ['land','air','water'].forEach(r => {
+        ZooState.realmOpen[r] = true;
+        RARITY_BUCKETS.forEach(b => ZooState.bucketOpen[r][b] = true);
+      });
+    }
+    App.nav('zoo');
+  },
+
+  toggleRealm(target) {
+    // 1. Determine if we are opening or closing the target
+    const isOpening = !ZooState.realmOpen[target];
+    
+    // 2. Force CLOSE all realms first (Accordion behavior)
+    ['land','air','water'].forEach(r => ZooState.realmOpen[r] = false);
+
+    // 3. Set the target state
+    ZooState.realmOpen[target] = isOpening;
+
+    // Optional: When closing a realm, you might want to reset its buckets?
+    // For now, we leave bucket states alone so they remember where you were.
+    App.nav('zoo');
+  },
+
+  toggleBucket(realm, targetBucket) {
+    // 1. Determine if we are opening or closing the target
+    const isOpening = !ZooState.bucketOpen[realm][targetBucket];
+
+    // 2. Force CLOSE all buckets in this specific realm
+    RARITY_BUCKETS.forEach(b => ZooState.bucketOpen[realm][b] = false);
+
+    // 3. Set the target state
+    ZooState.bucketOpen[realm][targetBucket] = isOpening;
+    App.nav('zoo');
+  },
+
+  page(realm, bucket, delta) {
+    // Ensure we are targeting a specific nested key
+    if(!ZooState.page[realm]) ZooState.page[realm] = {};
+    const current = ZooState.page[realm][bucket] || 0;
+    ZooState.page[realm][bucket] = Math.max(0, current + delta);
+    App.nav('zoo');
+  }
+};
+
+// IMPORTANT: This makes the handlers available to the HTML onclick events
+window.ZooHandlers = ZooHandlers;
+
+// Persistent storage for users/results
+const STORAGE_KEY = 'innerAnimal.app.v10';
+const LEGACY_KEY  = 'inner-animal-v2';
+
+const Store = {
+  load() {
+    try {
+      // Prefer the current key
+      let raw = localStorage.getItem(STORAGE_KEY);
+
+      // If nothing stored yet, try legacy key once and migrate
+      if (!raw) {
+        const legacyRaw = localStorage.getItem(LEGACY_KEY);
+        if (legacyRaw) {
+          const legacyParsed = JSON.parse(legacyRaw);
+          const migrated = {
+            users: legacyParsed.users || {},
+            currentUser: legacyParsed.currentUser || null
+          };
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
+          return migrated;
+        }
+        return { users: {}, currentUser: null };
+      }
+
+      const parsed = JSON.parse(raw) || {};
+      if (!parsed.users || typeof parsed.users !== 'object') {
+        parsed.users = {};
+      }
+      if (!('currentUser' in parsed)) {
+        parsed.currentUser = null;
+      }
+      return parsed;
+    } catch (err) {
+      console.warn('Store.load failed:', err);
+      return { users: {}, currentUser: null };
+    }
+  },
+
+  save(state) {
+    try {
+      const payload = {
+        users: state.users || {},
+        currentUser: state.currentUser || null
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+    } catch (err) {
+      console.warn('Store.save failed:', err);
+    }
+  }
+};
+
+/* ---------- Core App ---------- */
+const App={
+  state:Object.assign({},Store.load(),{view:'home'}),
+  
+  nav(t){
+    this.state.view=t;
+    document.querySelectorAll('nav button').forEach(b=>{b.classList.remove('active');b.removeAttribute('aria-current');});
+    const btn=document.getElementById('nav-'+t);
+    if(btn){btn.classList.add('active');btn.setAttribute('aria-current','page');}
+    
+    // Switch the hero banner style
+    this.updateBanner(t);
+
+    this.render();
+  },
+  
+  updateBanner(viewName){
+    const banner = document.getElementById('main-banner');
+    if(!banner) return;
+    
+    // Reset to base, then add the view-specific modifier
+    // Supported views: home, quiz, hall, zoo, users, about
+    // Fallback: use 'home' if viewName is unknown or results
+    let target = viewName;
+    if(target === 'results') target = 'results'; // We have a results style now, or use 'quiz'
+    
+    // Remove all modifier classes first? Easier to just set className directly
+    // preserving the 'hero-banner' base class
+    banner.className = `hero-banner ${target}`;
+  },
+
+  setUser(u){
+    const s=this.state;
+    if(!s.users[u]) s.users[u]={username:u,results:[]};
+    s.currentUser=u;
+    Store.save(s);
+    this.render();
+  },
+
+  deleteUser(u){
+    if(!confirm(`Are you sure you want to delete user "${u}" and all their results?`)) return;
+    const s=this.state;
+    if(s.users[u]){
+      delete s.users[u];
+      // If we deleted the active user, log them out
+      if(s.currentUser === u){
+        s.currentUser = null;
+      }
+      Store.save(s);
+      this.render();
+    }
+  },
+  
+  logout(){this.state.currentUser=null;Store.save(this.state);this.render();},
+  
+  startQuiz(){this.quiz=new QuizRunner();this.nav('quiz');},
+  
+  finishQuiz(r){
+    const s=this.state;
+    if(!s.currentUser) return;
+    const rec=Object.assign({chosen_kind:'top'},r,{ts:Date.now()});
+    s.users[s.currentUser].results.unshift(rec);
+    Store.save(s);
+    this.nav('results');
+  },
+
+  /* --- SWAP LOGIC (Fixes Dropping Animals) --- */
+
+  // 1. Swap Top <-> Alternate (Same Quiz)
+  swapActiveAlternate(idx){
+    const s=this.state, u=s.users[s.currentUser];
+    if(!u||!u.results.length) return;
+    const r=u.results[0];
+    
+    if(!r.alternates || !r.alternates[idx]) return;
+
+    const newTop = r.alternates[idx];
+    const oldTop = r.top;
+
+    // Ensure confidence travels with the animal
+    if(oldTop.confidence === undefined) oldTop.confidence = r.confidence || 0;
+
+    r.top = newTop;
+    r.alternates[idx] = oldTop;
+    r.chosen_kind = 'top';
+    r.ts = Date.now();
+    
+    // Update wrapper confidence to match the new winner
+    r.confidence = newTop.confidence || 0;
+    
+    Store.save(s);
+    this.render();
+  },
+
+  // 2. Swap Top <-> Shadow (Same Quiz)
+  swapActiveShadow(){
+    const s=this.state, u=s.users[s.currentUser];
+    if(!u||!u.results.length) return;
+    const r=u.results[0];
+    if(!r.shadow) return;
+
+    const newTop = r.shadow;
+    const oldTop = r.top;
+
+    if(oldTop.confidence === undefined) oldTop.confidence = r.confidence || 0;
+
+    r.top = newTop;
+    r.shadow = oldTop;
+    r.chosen_kind = 'top';
+    r.ts = Date.now();
+    
+    r.confidence = newTop.confidence || 0;
+
+    Store.save(s);
+    this.render();
+  },
+
+  // 3. Swap Top <-> History (Preserves Pack!)
+  promoteHistory(index){
+    const s=this.state;
+    const u=s.users[s.currentUser];
+    if(!u || index <= 0 || index >= u.results.length) return;
+
+    const activeRec = u.results[0];
+    const histRec = u.results[index];
+
+    // Identify the animals
+    const newTop = histRec.top;
+    const oldTop = activeRec.top;
+
+    // Ensure confidence is attached to the animal objects before moving them
+    if(oldTop.confidence === undefined) oldTop.confidence = activeRec.confidence || 0;
+    if(newTop.confidence === undefined) newTop.confidence = histRec.confidence || 0;
+
+    // SWAP: History animal becomes Active Top. Old Top goes to History.
+    // This keeps the Active Record's alternates/shadows intact!
+    activeRec.top = newTop;
+    histRec.top = oldTop;
+
+    // Update timestamps and confidence wrappers
+    activeRec.ts = Date.now();
+    activeRec.confidence = newTop.confidence;
+    histRec.confidence = oldTop.confidence;
+    
+    Store.save(s);
+    this.render();
+  },
+
+  /* --- DELETE LOGIC (Direct) --- */
+
+  deleteActiveAlternate(idx){
+    const s=this.state, u=s.users[s.currentUser];
+    if(u && u.results && u.results[0] && u.results[0].alternates) {
+      u.results[0].alternates.splice(idx, 1);
+      Store.save(s);
+      this.render();
+    }
+  },
+
+  deleteActiveShadow(){
+    const s=this.state, u=s.users[s.currentUser];
+    if(u && u.results && u.results[0]) {
+      u.results[0].shadow = null;
+      Store.save(s);
+      this.render();
+    }
+  },
+
+  deleteResult(index){ 
+    const s=this.state; 
+    const u=s.users[s.currentUser]; 
+    if(!u) return; 
+    
+    if(index < 0 || index >= u.results.length) return;
+
+    u.results.splice(index,1); 
+    Store.save(s); 
+    this.render(); 
+  },
+
+  render(){
+    const root=document.getElementById('app'),s=this.state;
+    // Re-trigger the view-enter animation on each navigation
+    root.classList.remove('view-enter'); void root.offsetWidth; root.classList.add('view-enter');
+    if(s.view==='home') return Views.home(root,s);
+    if(s.view==='quiz') return Views.quiz(root,this);
+    if(s.view==='results') return Views.results(root,s);
+    if(s.view==='hall') return Views.hall(root,s);
+    if(s.view==='zoo') return Views.zoo(root,s);
+    if(s.view==='users') return Views.users(root,s);
+    if(s.view==='about') return Views.about(root,s);
+  }
+};
+
+/* ---------- Views ---------- */
+function laneBadge(l){const map={common:'Familiar',less_common:'Less-common',unusual:'Unusual',bizarre:'Bizarre'}; return `<span class="pill">${map[l]||l}</span>`;}
+function ResultCard(result){
+  const t=(result&&result.top)||{};
+  const traits=Array.isArray(t.traits)?t.traits:[];
+  
+  // Get confidence from the Animal object first
+  const rawConf = (t.confidence !== undefined) ? t.confidence : (result.confidence || 0);
+  const conf = Math.round(rawConf * 100);
+  
+  const bar=`<div class="progress" style="height:6px;margin-top:6px">
+    <div style="width:${conf}%;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--good),var(--accent));"></div>
+  </div>`;
+  return (
+    `<div class="card">`+
+      AnimalCardArt(t.id||'unknown', t.name||'', 'hero')+
+      `<h3 class="big">${t.name||'Unknown'}</h3>`+
+      `<div class="traits">${traits.map(x=>`<span class='pill'>${x}</span>`).join('')}</div>`+
+      `<div style="margin-top:8px;display:flex;justify-content:space-between;align-items:center;">`+
+        `<div>${laneBadge(t.lane||'common')}</div>`+
+        `<div class="small" style="font-weight:600;color:var(--accent2)">${conf}% Match</div>`+
+      `</div>`+
+      bar+
+      `<div class="muted small" style="margin-top:8px">Saved ${new Date(result.ts||Date.now()).toLocaleString()}</div>`+
+    `</div>`
+  );
+}
+
+function ResultMiniCard(an){
+  if(!an) return '<div class="muted small">None</div>';
+  const rec = (an.top && an.top.name) ? an.top : an;
+  const traits = Array.isArray(rec.traits) ? rec.traits : [];
+  const lane = rec.lane || (an.rarity_lane||'common');
+  const name = rec.name || an.display_name || 'Unknown';
+  
+  // Get confidence
+  const val = (rec.confidence !== undefined) ? rec.confidence : (an.confidence || 0);
+  const conf = Math.round(val * 100);
+  
+  // Show pill if we have data
+  const confPill = conf > 0 ? `<span class='pill' style='background:#111827;border-color:var(--accent);color:var(--accent)'>${conf}%</span>` : '';
+  
+  return (
+    `<div class="card">`+
+      AnimalCardArt(rec.id||an.id||'unknown', name, 'mini')+
+      `<h4>${name}</h4>`+
+      `<div class="traits">${traits.map(x=>`<span class='pill'>${x}</span>`).join('')}</div>`+
+      `<div style="margin-top:6px;display:flex;gap:6px;align-items:center;flex-wrap:wrap;">${laneBadge(lane)} ${confPill}</div>`+
+    `</div>`
+  );
+}
+const Views={
+  home(el,s){
+    el.innerHTML=`
+      <section class="panel">
+        <div class="row cols-2">
+          <div>
+            <h2 class="big">Find your Inner Animal</h2>
+            <p class="muted">Short, visual choices → a smart shortlist → a delightful reveal. Multi-user friendly with saved history.</p>
+            <div class="controls">
+              <div>${ s.currentUser?`<div class="pill">Signed in as <strong>${s.currentUser}</strong></div>`:'<div class="pill">No user selected</div>' }</div>
+              <div>${ s.currentUser?`<button class="btn primary" onclick="App.startQuiz()">Start Quiz</button> <button class="btn" onclick="App.nav('hall')">View Hall</button>`:'' }</div>
+            </div>
+          </div>
+          <div>
+            <div class="card">
+              <h4>Create or choose a user</h4>
+              <div class="row cols-2">
+                <input id="newUser" placeholder="Enter username" style="padding:10px;border-radius:10px;border:1px solid var(--border);background:var(--panel);color:var(--text)"/>
+                <button class="btn" onclick="(function(){const u=document.getElementById('newUser').value.trim();if(u){App.setUser(u); const has=(App.state.users[u]&&App.state.users[u].results&&App.state.users[u].results.length>0); if(has){App.nav('results');} else {App.startQuiz();}}})()">Go</button>
+              </div>
+              <div class="muted small">Or pick an existing user:</div>
+              <div class="row cols-3" id="userList"></div>
+              ${ s.currentUser?`<div class="right"><button class="btn" onclick="App.logout()">Sign out</button></div>`:'' }
+            </div>
+          </div>
+        </div>
+      </section>`;
+    const list=el.querySelector('#userList');
+    if(list){
+      list.innerHTML = Object.values(s.users).map(u=>`
+        <div class="card" onclick="App.setUser('${u.username}'); (App.state.users['${u.username}'].results.length?App.nav('results'):App.nav('quiz'))">
+          <button class="btn-delete" onclick="event.stopPropagation(); App.deleteUser('${u.username}')" title="Delete user @${u.username}" aria-label="Delete user @${u.username}">×</button>
+          ${AnimalSVGById('user-'+u.username, '@'+u.username)}
+          <h4>@${u.username}</h4>
+          <div class="muted small">${u.results.length} result(s)</div>
+        </div>`).join('')||'<div class="muted small">No users yet.</div>';
+    }
+  },
+  quiz(el,app){ app.quiz=new QuizRunner(); el.innerHTML=''; el.appendChild(app.quiz.render()); },
+results(el,s){
+    const u = s.users[s.currentUser];
+    if(!u || !u.results || u.results.length === 0){ 
+      el.innerHTML='<section class="panel">No results yet. <button class="btn primary" onclick="App.startQuiz()">Start Quiz</button></section>'; 
+      return; 
+    }
+
+    const active = u.results[0];
+    
+    // --- Helper to build "Your Pack" cards robustly ---
+    const renderPackItem = (an, type, idx, extraLabel='') => {
+      if(!an) return '';
+      const name = an.name || an.display_name || 'Unknown';
+      const lane = an.lane || an.rarity_lane || 'common';
+      
+      // Handle Confidence
+      const val = (an.confidence !== undefined) ? an.confidence : 0;
+      const conf = Math.round(val * 100);
+      const confPill = conf > 0 ? `<span class='pill' style='background:#111827;border-color:var(--accent);color:var(--accent)'>${conf}%</span>` : '';
+      
+      // Image
+      const img = AnimalCardArt(an.id||'unknown', name, 'mini');
+      
+      // Traits
+      const tList = (an.traits||[]).map(t=>`<span class='pill'>${t}</span>`).join('');
+
+      // Buttons & Styling based on type
+      let btns = '';
+      let style = '';
+      let topLabel = extraLabel;
+
+      if(type === 'alt'){
+        btns = `<button class="btn small" onclick="App.swapActiveAlternate(${idx})">Make Top</button>
+                <button class="btn small ghost" style="color:var(--muted)" onclick="App.deleteActiveAlternate(${idx})">Delete</button>`;
+      } else if (type === 'shadow') {
+        btns = `<button class="btn small" onclick="App.swapActiveShadow()">Make Top</button>
+                <button class="btn small ghost" style="color:var(--muted)" onclick="App.deleteActiveShadow()">Delete</button>`;
+        style = 'border:1px dashed #a78bfa; box-shadow:0 0 10px rgba(167,139,250,0.1);';
+        topLabel = `<div class="small" style="color:#a78bfa;margin-bottom:2px;text-transform:uppercase;font-size:10px;letter-spacing:1px;">Shadow / Opposite</div>`;
+      } else if (type === 'history') {
+        btns = `<button class="btn small" onclick="App.promoteHistory(${idx})">Make Top</button>
+                <button class="btn small ghost" style="color:var(--muted)" onclick="App.deleteResult(${idx})">Delete</button>`;
+      }
+
+      return `
+        <div class="card" style="${style}">
+          ${img}
+          ${topLabel}
+          <h4>${name}</h4>
+          <div class="traits">${tList}</div>
+          <div style="margin-top:6px;display:flex;gap:6px;align-items:center;flex-wrap:wrap;">${laneBadge(lane)} ${confPill}</div>
+          <div style="display:flex;gap:6px;margin-top:12px;justify-content:space-between;border-top:1px solid var(--border);padding-top:8px;">
+            ${btns}
+          </div>
+        </div>`;
+    };
+
+    // --- BUILD "YOUR PACK" CONTENT ---
+    let packHtml = '';
+
+    // 1. Current Alternates
+    if(active.alternates && active.alternates.length){
+      active.alternates.forEach((alt, i) => {
+        // Prevent active top from appearing in alternates if ID matches (safety filter)
+        if(active.top && alt.id === active.top.id) return;
+        packHtml += renderPackItem(alt, 'alt', i);
+      });
+    }
+
+    // 2. Current Shadow
+    if(active.shadow){
+      packHtml += renderPackItem(active.shadow, 'shadow', 0);
+    }
+
+    // 3. History
+    if(u.results.length > 1){
+      u.results.slice(1).forEach((res, index) => {
+        const realIndex = index + 1;
+        const dateStr = `<div class="muted small" style="margin-bottom:2px">From ${new Date(res.ts).toLocaleDateString()}</div>`;
+        // Pass 'res.top' because history items are wrappers
+        packHtml += renderPackItem(res.top, 'history', realIndex, dateStr);
+      });
+    }
+
+    el.innerHTML=`
+      <section class="panel">
+        <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:12px;">
+          <div>
+            <h2 class="big" style="margin:0">@${u.username}'s Inner Animal</h2>
+            <p class="muted small" style="margin:4px 0 0 0">This is your active result.</p>
+          </div>
+          <div>
+            <button class="btn primary small" onclick="App.startQuiz()">Take Quiz Again</button>
+          </div>
+        </div>
+        
+        ${ResultCard(active)}
+
+        <div class="controls" style="margin-top:18px;border-top:1px solid var(--border);padding-top:14px">
+          <button class="btn" onclick="App.nav('hall')">View Hall</button>
+        </div>
+      </section>
+
+      <section class="panel" style="margin-top:20px;">
+        <h2 class="big">Your Pack</h2>
+        <p class="muted small">Near matches, shadows, and past results.</p>
+        <div class="grid-cards cols-3">
+          ${packHtml || '<div class="muted">Your pack is empty.</div>'}
+        </div>
+      </section>
+    `;
+  },
+
+  hall(el,s){
+    const items=Object.values(s.users).map(u=>{
+      const latest=u.results[0];
+      if(!latest) return `<div class="card" onclick="App.setUser('${u.username}');App.nav('quiz')"><h4>@${u.username}</h4><div class="muted small">No results yet.</div></div>`;
+      return `<div class="card" onclick="App.setUser('${u.username}');App.nav('results')">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+          <h4>@${u.username}</h4>
+          <button class="btn small" onclick="event.stopPropagation();toggleHistory('${u.username}')">History (${u.results.length})</button>
+        </div>
+        ${ResultMiniCard(latest)}
+        <div id="hist-${u.username}" style="display:none;margin-top:10px">
+          ${u.results.slice(1).map(ResultMiniCard).join('')||'<div class="muted small">No older results.</div>'}
+        </div>
+      </div>`;
+    }).join('');
+    el.innerHTML=`<section class="panel"><h2 class="big">Hall of Animals</h2><div class="row cols-2">${items||'<div class="muted">No users/results yet.</div>'}</div></section>`;
+    window.toggleHistory=(un)=>{const el2=document.getElementById('hist-'+un); if(el2) el2.style.display=(el2.style.display==='none'?'block':'none');}
+  },
+zoo(el,s){
+    const query = (ZooState.search || '').toLowerCase();
+
+    // Build realm + rarity buckets with optional search filter
+    const groups = {
+      land:  {Common:[],Uncommon:[],Unique:[],Bizarre:[]},
+      air:   {Common:[],Uncommon:[],Unique:[],Bizarre:[]},
+      water: {Common:[],Uncommon:[],Unique:[],Bizarre:[]}
+    };
+
+    // FIX: Use window.ANIMALS to ensure we find the data
+    const catalog = window.ANIMALS || [];
+
+    catalog.forEach(an=>{
+      const realm = getRealm(an); 
+      const bucket = rarityBucket(an.rarity_lane || 'common');
+      if(!groups[realm] || !groups[realm][bucket]) return;
+
+      if(query){
+        const rawName = (an.display_name || an.id || '');
+        const haystack = [rawName, rawName.replace(/_/g,' '), flattenTraits(an).join(' '), flattenFacets(an).join(' ')].join(' ').toLowerCase();
+        if(!haystack.includes(query)) return;
+      }
+
+      groups[realm][bucket].push(an);
+    });
+
+    // Realm-level counts
+    const getCount = (r) => Object.values(groups[r]).reduce((n, arr)=>n + arr.length, 0);
+    const landCount = getCount('land');
+    const airCount = getCount('air');
+    const waterCount = getCount('water');
+
+    const statsHtml = `
+      <div class="zoo-stats">
+        <div class="zoo-stat-card"><div class="zoo-stat-label">Land</div><div class="zoo-stat-value">${landCount}</div></div>
+        <div class="zoo-stat-card"><div class="zoo-stat-label">Air</div><div class="zoo-stat-value">${airCount}</div></div>
+        <div class="zoo-stat-card"><div class="zoo-stat-label">Water</div><div class="zoo-stat-value">${waterCount}</div></div>
+      </div>`;
+
+    const makeAnimalCard = (an)=>{
+      const imgUrl = animalImageUrl(an.id);
+      const name = an.display_name || an.id;
+      const realm = getRealm(an);
+      const tint = ({land:'var(--land)',air:'var(--air)',water:'var(--water)'})[realm] || 'var(--accent)';
+      const style = `border-top:3px solid ${tint};`;
+      return `
+        <div class="zoo-card" style="${style}">
+          <div class="zoo-mini">
+            ${imgUrl ? `<img src="${imgUrl}" alt="${name}" loading="lazy" decoding="async" data-animal-id="${an.id||'unknown'}" data-animal-title="${(name||'').replace(/"/g,'&quot;')}" onerror="AnimalImgFallback(this)"/>` : `<div class="muted small" style="padding:8px;">No image</div>`}
+          </div>
+          <div class="zoo-card-body">
+            <div class="zoo-card-title">${name}</div>
+            <div class="zoo-tags small">${flattenTraits(an).map(t=>`<span class="pill">${t}</span>`).join('')}</div>
+          </div>
+        </div>`;
+    };
+
+    const realmSections = ['land','air','water'].map(realm=>{
+      const openRealm = ZooState.realmOpen[realm];
+
+      const header = `
+        <div class="zoo-section-header" data-realm="${realm}" onclick="ZooHandlers.toggleRealm('${realm}')">
+          <h3>${REALM_LABELS[realm]}</h3>
+          <button type="button" class="btn small btn-icon" aria-expanded="${openRealm}" aria-label="${openRealm?'Collapse':'Expand'} ${REALM_LABELS[realm]} animals">${openRealm ? '−' : '+'}</button>
+        </div>`;
+
+      if(!openRealm) return `<section class="zoo-section">${header}</section>`;
+
+      const cols = RARITY_BUCKETS.map(bucket=>{
+        const animals = groups[realm][bucket] || [];
+        const total = animals.length;
+        const openBucket = ZooState.bucketOpen[realm][bucket];
+
+        const headerRow = `
+          <div class="zoo-bucket-header" onclick="ZooHandlers.toggleBucket('${realm}','${bucket}')">
+            <h4>${bucket}</h4>
+            <span class="muted small">${total}</span>
+            <button type="button" class="btn small btn-icon">${openBucket ? '−' : '+'}</button>
+          </div>`;
+
+        if(!openBucket) return `<div class="card">${headerRow}</div>`;
+
+        // --- PAGINATION LOGIC ---
+        const pageSize = 9;
+        const sorted = animals.slice().sort((a,b)=>(a.display_name||a.id).localeCompare(b.display_name||b.id));
+        const totalPages = Math.max(1, Math.ceil(sorted.length / pageSize));
+        
+        let pageIndex = ZooState.page[realm][bucket] || 0;
+        if(pageIndex >= totalPages) pageIndex = totalPages - 1;
+        if(pageIndex < 0) pageIndex = 0;
+        ZooState.page[realm][bucket] = pageIndex;
+
+        const start = pageIndex * pageSize;
+        const slice = sorted.slice(start, start + pageSize);
+
+        const cardsHtml = slice.length
+          ? slice.map(makeAnimalCard).join('')
+          : `<div class="muted small">No animals in this lane yet.</div>`;
+
+        const prevDisabled = pageIndex === 0;
+        const nextDisabled = pageIndex >= totalPages - 1;
+
+        const pager = totalPages > 1 ? `
+          <div class="zoo-pager small">
+            <button type="button" class="btn small"
+              ${prevDisabled ? 'disabled style="opacity:0.5;cursor:default;"' : ''}
+              onclick="ZooHandlers.page('${realm}','${bucket}',-1)">Prev 9</button>
+            
+            <span>Page ${pageIndex+1} of ${totalPages}</span>
+            
+            <button type="button" class="btn small"
+              ${nextDisabled ? 'disabled style="opacity:0.5;cursor:default;"' : ''}
+              onclick="ZooHandlers.page('${realm}','${bucket}',1)">Next 9</button>
+          </div>` : '';
+
+        return `
+          <div class="card">
+            ${headerRow}
+            <div class="zoo-cards">${cardsHtml}</div>
+            ${pager}
+          </div>`;
+      }).join('');
+
+      return `<section class="zoo-section">${header}<div class="zoo-grid">${cols}</div></section>`;
+    }).join('');
+
+    el.innerHTML = `
+      <section class="panel">
+        <h2 class="big">The Zoo</h2>
+        <div class="zoo-controls">
+          <div class="zoo-search">
+            <input id="zoo-search-input" type="text" placeholder="Search..." value="${ZooState.search||''}"
+              oninput="ZooHandlers.searchInput(this.value)"
+              onkeydown="if(event.key==='Enter'){ ZooHandlers.searchSubmit(this); }"
+            />
+          </div>
+          <button type="button" class="btn primary small" onclick="ZooHandlers.searchSubmit(document.getElementById('zoo-search-input'))">Search</button>
+        </div>
+        ${statsHtml}
+        ${realmSections}
+      </section>`;
+  },
+  users(el,s){
+    const rows=Object.values(s.users).map(u=>`
+      <div class="card" onclick="App.setUser('${u.username}'); (App.state.users['${u.username}'].results.length?App.nav('results'):App.nav('quiz'))">
+        ${AnimalSVGById('user-'+u.username, '@'+u.username)}
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <h4>@${u.username}</h4>
+          <div class="muted small">${u.results.length} result(s)</div>
+        </div>
+        <div class="traits">${ (u.results[0]?.top?.traits||[]).map(t=>`<span class='pill'>${t}</span>`).join('') || '<span class="muted small">No traits yet.</span>' }</div>
+      </div>`).join('');
+    el.innerHTML=`<section class="panel"><h2 class="big">Users</h2><div class="row cols-3">${rows||'<div class="muted">No users.</div>'}</div></section>`;
+  },
+  about(el){ el.innerHTML=`
+    <section class="panel">
+      <h2 class="big">About</h2>
+      <p class="muted">Version 1.0 adds a modern, low-glow look and inline SVG artwork for the logo and animals. The quiz keeps lane-specific prompts, a tie-break step for close matches, a Familiar ↔ Surprising slider with snapping, progress counter, 0.6/0.4 scoring, and a confidence meter. After results, you can choose Top / Near Miss / Shadow as your saved Inner Animal.</p>
+    </section>`; }
+};
+/* ---------- Quiz + Scoring ---------- */
+
+function lerp(a,b,t){return a*(1-t)+b*t;}
+
+
+/* ---------- Question views ---------- */
+
+function TriadView(triad,onPick,onBack,onSkip,selectedIndex){
+  const wrap=document.createElement('div');
+  const prompt=document.createElement('div'); prompt.className='big'; prompt.textContent=triad.prompt; wrap.appendChild(prompt);
+  const row=document.createElement('div'); row.className='row cols-3'; wrap.appendChild(row);
+  (triad.options||[]).forEach((opt,i)=>{
+    const card=document.createElement('button'); card.type='button'; card.className='opt'; if(selectedIndex===i){card.classList.add('selected'); card.setAttribute('aria-pressed','true');}
+    const art=document.createElement('div'); art.innerHTML=AnimalSVGById(triad.id+'-'+i, opt.label); card.appendChild(art.firstElementChild);
+    const h4=document.createElement('h4'); h4.textContent=opt.label; card.appendChild(h4);
+    card.addEventListener('click',()=>onPick && onPick(opt,i)); row.appendChild(card);
+  });
+  const controls=document.createElement('div'); controls.className='controls';
+  const left=document.createElement('div'); const right=document.createElement('div'); controls.appendChild(left); controls.appendChild(right);
+  const back=document.createElement('button'); back.className='btn'; back.textContent='Back';
+  back.addEventListener('click',()=>{ if(onBack) onBack(); });
+  left.appendChild(back);
+  const skip=document.createElement('button'); skip.className='btn'; skip.textContent='Skip';
+  skip.addEventListener('click',()=>{ if(onSkip) onSkip(); });
+  right.appendChild(skip);
+  wrap.appendChild(controls);
+  return wrap;
+}
+
+function TieBreakView(onPick){
+  const wrap=document.createElement('div');
+  const head=document.createElement('h3'); head.textContent='Tie-breaker'; wrap.appendChild(head);
+  const sub=document.createElement('div'); sub.className='muted small'; sub.textContent='One more nudge to separate close matches.'; wrap.appendChild(sub);
+  const row=document.createElement('div'); row.className='row cols-3'; wrap.appendChild(row);
+  const options=[
+    {label:'Precision & Patience', trait_boosts:{signature:['precision','patience']}},
+    {label:'Bold & Fast', trait_boosts:{temperament:['bold'], signature:['speed','agility']}},
+    {label:'Creative & Adaptable', trait_boosts:{signature:['creativity'], temperament:['adaptable']}}
+  ];
+  options.forEach((opt,i)=>{const card=document.createElement('button'); card.type='button'; card.className='opt';
+    const art=document.createElement('div'); art.innerHTML=AnimalSVGById('tiebreak-'+i, opt.label); card.appendChild(art.firstElementChild);
+    const h4=document.createElement('h4'); h4.textContent=opt.label; card.appendChild(h4);
+    card.addEventListener('click',()=>onPick(opt)); row.appendChild(card);});
+  return wrap;
+}
+
+/* ---------- Quiz Runner ---------- */
+class QuizRunner{
+  constructor(){
+    this.stageA=TRIADS.filter(t=>t.stage==='A');
+    this.baseB=TRIADS.filter(t=>t.stage==='B');
+    this.laneB=[];
+    this.aIndex=0; this.bIndex=0;
+    this.userFacets={biome:new Set(),locomotion:new Set(),diel:new Set(),sociality:new Set(),diet:new Set()};
+    this.userTraits={}; this.slider=50; this._tiebroke=false; this.selectionsA=new Array(this.stageA.length).fill(null); this.selectionsB=[];
+    this.lanePick=null;
+  }
+  inStageB(){ return this.aIndex>=this.stageA.length; }
+  boostFromOption(opt){ this.addOptionBoost(opt); }
+  addOptionBoost(opt){
+    for(const k in (opt?.trait_boosts||{})) (opt.trait_boosts[k]||[]).forEach(tr=>this.userTraits[tr]=(this.userTraits[tr]||0)+1);
+    for(const k in (opt?.facet_boosts||{})) (opt.facet_boosts[k]||[]).forEach(f=>this.userFacets[k]?.add(f));
+  }
+  recompute(){
+    this.userFacets={biome:new Set(),locomotion:new Set(),diel:new Set(),sociality:new Set(),diet:new Set()};
+    this.userTraits={};
+    for(let i=0;i<Math.min(this.aIndex,this.stageA.length);i++){
+      const idx=this.selectionsA[i]; if(idx==null) continue; const tri=this.stageA[i]; const opt=tri?.options?.[idx]; if(opt) this.addOptionBoost(opt);
+    }
+    const SB=this.getStageB();
+    for(let i=0;i<Math.min(this.bIndex,SB.length);i++){
+      const idx=this.selectionsB[i]; if(idx==null) continue; const tri=SB[i]; const opt=tri?.options?.[idx]; if(opt) this.addOptionBoost(opt);
+    }
+  }
+  getStageB(){ return [...(this.baseB||[]), ...(this.laneB||[])]; }
+  buildLaneUI(){
+    const scores={land:0,air:0,water:0};
+    if(this.userFacets.locomotion.has('flyer')||this.userFacets.locomotion.has('glider')) scores.air+=2;
+    if(this.userFacets.locomotion.has('swimmer')||this.userFacets.locomotion.has('diver')) scores.water+=2;
+    if(this.userFacets.locomotion.size===0) scores.land+=1;
+    [...this.userFacets.biome].forEach(b=>{
+      if(['coastal','reef','open_ocean','river_lake','wetland'].includes(b)) scores.water+=1;
+      if(['forest','grassland/savanna','desert','urban','alpine/tundra'].includes(b)) scores.land+=1;
+    });
+    const lanes=Object.entries(scores).sort((a,b)=>b[1]-a[1]).map(([k,_])=>k).slice(0,3);
+    const wrap=document.createElement('div'); wrap.className='panel';
+    const title=document.createElement('h3'); title.textContent='Choose your lane'; wrap.appendChild(title);
+    const sub=document.createElement('p'); sub.className='muted small'; sub.textContent='This helps us focus the shortlist.'; wrap.appendChild(sub);
+    const row=document.createElement('div'); row.className='lane-pick'; wrap.appendChild(row);
+    lanes.forEach(l=>{const card=document.createElement('button'); card.type='button'; card.className='opt'; card.style.flex='1';
+      card.style.borderTop='3px solid '+(({land:'var(--land)',air:'var(--air)',water:'var(--water)'})[l]||'var(--accent)');
+      const art=document.createElement('div'); art.innerHTML=AnimalSVGById('lane-'+l, l[0].toUpperCase()+l.slice(1)); card.appendChild(art.firstElementChild);
+      const h4=document.createElement('h4'); h4.textContent=l[0].toUpperCase()+l.slice(1); card.appendChild(h4);
+      const d=document.createElement('div'); d.className='muted small'; d.textContent='Focus on '+l+' species'; card.appendChild(d);
+      card.addEventListener('click',()=>this.chooseLane(l)); row.appendChild(card);});
+    return wrap;
+  }
+  chooseLane(l){
+    this.lanePick=l; this.laneB=(LANE_TRIADS&&LANE_TRIADS[l])?LANE_TRIADS[l]:[]; this.selectionsB=[]; this.bIndex=0; this.recompute();
+    if(this.renderInto){
+      const laneSlot=this.renderInto.querySelector('#laneSlot'); if(laneSlot) laneSlot.innerHTML='';
+      const bSlot=this.renderInto.querySelector('#bSlot'); if(bSlot) bSlot.style.display='block';
+    }
+    this.renderB();
+  }
+  updateCounters(){
+    if(!this.renderInto) return;
+    const total=(this.stageA?.length||0)+(this.getStageB()?.length||0);
+    const aDone=Math.min(this.aIndex,this.stageA.length);
+    const bDone=Math.min(this.bIndex,this.getStageB().length);
+    const answered=Math.min(aDone+bDone,total);
+    const current=Math.min(answered+1,total);
+    const line=this.renderInto.querySelector('#countLine');
+    if(line) line.textContent=`Q ${current}/${total} · A ${aDone}/${this.stageA.length} · B ${bDone}/${this.getStageB().length}`;
+    const pA=this.renderInto.querySelector('#progA'); if(pA) pA.style.width=`${(this.aIndex/this.stageA.length)*50}%`;
+    const pB=this.renderInto.querySelector('#progB'); if(pB) pB.style.width=`${50+(this.bIndex/this.getStageB().length)*50}%`;
+  }
+  render(){
+    const wrap=document.createElement('section'); wrap.className='panel';
+    wrap.innerHTML=`
+      <div class="controls">
+        <div class="pill">User: <strong>${App.state.currentUser||'—'}</strong></div>
+        <div style="min-width:240px;flex:1;display:flex;flex-direction:column;gap:4px">
+          <label id="biasLabel" for="biasRange" class="small muted" style="font-weight:600">Familiar ↔ Surprising</label>
+          <div class="range-wrap">
+            <input id="biasRange" type="range" min="0" max="100" value="${this.slider}" aria-labelledby="biasLabel" aria-valuetext="${this.slider<48?'Familiar':this.slider>52?'Surprising':'Neutral'}"/>
+            <div class="ticks"><span>Familiar</span><span>Neutral</span><span>Surprising</span></div>
+            <div id="biasCaption" class="small muted"></div>
+          </div>
+        </div>
+      </div>
+      <div class="progress" style="margin-top:12px"><div id="progA" style="width:${(this.aIndex/this.stageA.length)*50}%"></div></div>
+      <div id="countLine" class="small muted right" style="margin-top:4px"></div>
+      <h3 class="big">Stage A — Find your lane</h3>
+      <div id="aSlot"></div>
+      <div id="laneSlot"></div>
+      <div id="bSlot" style="display:none">
+        <div class="progress" style="margin-top:12px"><div id="progB" style="width:${50+(this.bIndex/this.getStageB().length)*50}%"></div></div>
+        <h3 class="big">Stage B — Refine your traits</h3>
+        <div id="bQ"></div>
+      </div>`;
+    const bias=wrap.querySelector('#biasRange'); const cap=wrap.querySelector('#biasCaption');
+    function updateCaption(v){ if(!cap) return; cap.textContent=(v<48)?'Familiar':(v>52)?'Surprising':'Neutral'; }
+    function snap(v){ return (v>=47 && v<=53)?50:v; }
+    if(bias){
+      updateCaption(this.slider);
+      bias.addEventListener('input',(e)=>{ let v=+e.target.value; v=snap(v); if(v!==+e.target.value) e.target.value=v; this.slider=v; updateCaption(v); this.updateCounters(); });
+    }
+    this.renderInto=wrap; this.recompute(); this.renderA(); this.updateCounters(); return wrap;
+  }
+  renderA(){
+    const slot=this.renderInto.querySelector('#aSlot');
+    if(this.aIndex>=this.stageA.length){
+      slot.innerHTML='<div class="muted">Stage A complete.</div>';
+      const laneSlot=this.renderInto.querySelector('#laneSlot'); if(laneSlot){ laneSlot.innerHTML=''; laneSlot.appendChild(this.buildLaneUI()); }
+      return;
+    }
+    slot.innerHTML=''; const triad=this.stageA[this.aIndex];
+    const selectedIdx=this.selectionsA[this.aIndex];
+    slot.appendChild(TriadView(triad,(opt,i)=>{ this.selectionsA[this.aIndex]=i; this.aIndex++; this.recompute(); this.updateCounters(); this.renderA(); }, ()=>{ if(this.aIndex>0){ this.aIndex--; this.recompute(); this.updateCounters(); this.renderA(); } }, ()=>{ this.selectionsA[this.aIndex]=null; this.aIndex++; this.recompute(); this.updateCounters(); this.renderA(); }, selectedIdx));
+  }
+  renderB(){
+    const slot=this.renderInto.querySelector('#bQ');
+    const SB=this.getStageB();
+    if(this.bIndex>=SB.length){
+      let prelim=computeShortlist(this.userTraits,this.userFacets,this.slider,this.lanePick);
+      if((prelim.margin||0)<0.03 && !this._tiebroke){
+        this._tiebroke=true; slot.innerHTML=''; slot.appendChild(TieBreakView((opt)=>{ this.addOptionBoost(opt); const final=computeShortlist(this.userTraits,this.userFacets,this.slider,this.lanePick); App.finishQuiz(final);}));
+        return;
+      }
+      App.finishQuiz(prelim); return;
+    }
+    slot.innerHTML=''; const triad=SB[this.bIndex];
+    const selectedIdx=this.selectionsB[this.bIndex];
+    slot.appendChild(TriadView(triad,(opt,i)=>{ this.selectionsB[this.bIndex]=i; this.bIndex++; this.recompute(); this.updateCounters(); this.renderB(); }, ()=>{ if(this.bIndex>0){ this.bIndex--; this.recompute(); this.updateCounters(); this.renderB(); } else { this.lanePick=null; this.laneB=[]; const bSlot=this.renderInto.querySelector('#bSlot'); if(bSlot) bSlot.style.display='none'; const laneSlot=this.renderInto.querySelector('#laneSlot'); if(laneSlot){ laneSlot.innerHTML=''; laneSlot.appendChild(this.buildLaneUI()); } this.updateCounters(); } }, ()=>{ this.selectionsB[this.bIndex]=null; this.bIndex++; this.recompute(); this.updateCounters(); this.renderB(); }, selectedIdx));
+  }
+}
+/* ---------- Boot ---------- */
+window.App = App;
+App.render();
+</script>
+</body>
+</html>

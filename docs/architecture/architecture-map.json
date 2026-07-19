@@ -1,0 +1,126 @@
+{
+  "project": {
+    "name": "inner-animal",
+    "description": "",
+    "visualTheme": "Mission Control",
+    "lastUpdated": "2026-07-19T19:53:30-04:00",
+    "generatedBy": "project-architecture skill"
+  },
+  "components": [
+    {
+      "id": "backend",
+      "name": "API Server",
+      "type": "backend",
+      "provider": "Node/Express",
+      "description": "Express HTTP server: pages, JSON API, auth, webhooks.",
+      "visualMetaphor": "Mission Control dome",
+      "hub": true,
+      "confidence": "confirmed",
+      "evidence": [
+        "package.json: dependency \"express\""
+      ]
+    },
+    {
+      "id": "database",
+      "name": "SQLite",
+      "type": "database",
+      "provider": "better-sqlite3",
+      "description": "Embedded SQLite datastore.",
+      "visualMetaphor": "Underground data vault",
+      "confidence": "needs-review",
+      "evidence": [
+        "package.json: dependency \"better-sqlite3\""
+      ]
+    },
+    {
+      "id": "domain",
+      "name": "www.inneranimalquiz.com",
+      "type": "domain",
+      "provider": "DNS",
+      "description": "Public domain www.inneranimalquiz.com pointing at production hosting.",
+      "visualMetaphor": "Deep-space beacon",
+      "confidence": "confirmed",
+      "evidence": [
+        "./robots.txt: www.inneranimalquiz.com"
+      ]
+    },
+    {
+      "id": "railway",
+      "name": "Railway",
+      "type": "hosting",
+      "provider": "Railway",
+      "description": "Production hosting; Dockerfile build, manual `railway up` deploys.",
+      "visualMetaphor": "Launch platform",
+      "confidence": "confirmed",
+      "evidence": [
+        "railway.json present"
+      ]
+    }
+  ],
+  "flows": [
+    {
+      "from": "backend",
+      "to": "database",
+      "confidence": "inferred",
+      "evidence": [
+        "both endpoints detected (backend, database)"
+      ],
+      "label": "queries",
+      "data": "users, profiles, scenes, plans",
+      "trigger": "API requests",
+      "animation": "pulse"
+    },
+    {
+      "from": "railway",
+      "to": "backend",
+      "confidence": "inferred",
+      "evidence": [
+        "both endpoints detected (railway, backend)"
+      ],
+      "label": "hosts",
+      "data": "runtime containers + env",
+      "trigger": "always on",
+      "animation": "orbit"
+    },
+    {
+      "from": "domain",
+      "to": "railway",
+      "confidence": "inferred",
+      "evidence": [
+        "both endpoints detected (domain, railway)"
+      ],
+      "label": "DNS routing",
+      "data": "public traffic",
+      "trigger": "browser visits",
+      "animation": "radar"
+    }
+  ],
+  "assets": [
+    {
+      "path": "moonbase-bg.jpg",
+      "source": "local",
+      "usage": "background",
+      "notes": "shared moon-base theme, seeded on discovery ($0)"
+    },
+    {
+      "path": "mission-patch.png",
+      "source": "local",
+      "usage": "patch (header emblem)",
+      "notes": "shared moon-base theme, seeded on discovery ($0)"
+    }
+  ],
+  "environments": [
+    {
+      "name": "local",
+      "notes": "dev server run locally"
+    },
+    {
+      "name": "production",
+      "notes": "Railway (manual `railway up`), single prod environment"
+    }
+  ],
+  "questions": [
+    "'database' no longer has code evidence \u2014 still in use?"
+  ],
+  "_evidenceNotes": []
+}
