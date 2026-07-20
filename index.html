@@ -162,6 +162,22 @@
 }
 
   /* Zoo view: layout, search, cards */
+  .zoo-hero{
+    position:relative;
+    border-radius:var(--radius-lg);
+    padding:22px 24px;
+    margin-bottom:16px;
+    border:1px solid #d5ecdd;
+    background:
+      radial-gradient(circle at 88% -30%, rgba(255,255,255,.6), transparent 55%),
+      linear-gradient(120deg, var(--land-tint), #eef7f0 60%, #fff);
+    box-shadow:var(--shadow-card);
+  }
+  .zoo-hero h2{margin:0;font-size:clamp(1.5rem,3.4vw,2.1rem);color:var(--text);}
+  .zoo-hero p{margin:6px 0 0;color:var(--muted);max-width:56ch;}
+  .zoo-hero .zoo-hero-count{color:var(--land);font-weight:700;}
+  @media (max-width:720px){ .zoo-hero{padding:18px 18px;} }
+
   .zoo-controls{
     display:flex;
     gap:8px;
@@ -1177,7 +1193,10 @@ zoo(el,s){
 
     el.innerHTML = `
       <section class="panel">
-        <h2 class="big">The Zoo</h2>
+        <div class="zoo-hero">
+          <h2>The Zoo</h2>
+          <p>Every inner animal gathered in one place — <span class="zoo-hero-count">${landCount+airCount+waterCount}</span> archetypes across land, air, and water. Browse by realm and rarity, or search for your favorite.</p>
+        </div>
         <div class="zoo-controls">
           <div class="zoo-search">
             <input id="zoo-search-input" type="text" placeholder="Search..." value="${ZooState.search||''}"
