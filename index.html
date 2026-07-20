@@ -477,10 +477,12 @@ function AnimalSVGById(id, title){
     </svg>
   </div>`;
 }
+// Bump when image files change — busts the 7-day immutable cache (see server/app.js)
+const IMG_VERSION = '2';
 function animalImageUrl(id){
   if(!id) return null;
   // images/<animal-id>.webp  (e.g., images/gray_squirrel.webp)
-  return `images/${id}.webp`;
+  return `images/${id}.webp?v=${IMG_VERSION}`;
 }
 
 // Fallback: if an animal PNG is missing/broken, swap in the generated SVG art
