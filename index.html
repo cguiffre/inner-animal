@@ -162,22 +162,6 @@
 }
 
   /* Zoo view: layout, search, cards */
-  .zoo-hero{
-    position:relative;
-    border-radius:var(--radius-lg);
-    padding:22px 24px;
-    margin-bottom:16px;
-    border:1px solid #d5ecdd;
-    background:
-      radial-gradient(circle at 88% -30%, rgba(255,255,255,.6), transparent 55%),
-      linear-gradient(120deg, var(--land-tint), #eef7f0 60%, #fff);
-    box-shadow:var(--shadow-card);
-  }
-  .zoo-hero h2{margin:0;font-size:clamp(1.5rem,3.4vw,2.1rem);color:var(--text);}
-  .zoo-hero p{margin:6px 0 0;color:var(--muted);max-width:56ch;}
-  .zoo-hero .zoo-hero-count{color:var(--land);font-weight:700;}
-  @media (max-width:720px){ .zoo-hero{padding:18px 18px;} }
-
   .zoo-controls{
     display:flex;
     gap:8px;
@@ -358,7 +342,9 @@
   width:100%;
   border-radius:var(--radius-lg);
   transition: background .4s ease, border-color .4s ease;
-  height:clamp(96px,15vw,168px);
+  min-height:clamp(120px,14vw,172px);
+  display:flex;
+  align-items:center;
   margin:12px auto 10px;
   border:1px solid var(--border);
   box-shadow: var(--shadow-card);
@@ -367,6 +353,15 @@
     radial-gradient(circle at 18% 120%, rgba(255,255,255,.5), transparent 45%),
     linear-gradient(120deg, var(--land-tint), var(--air-tint) 55%, var(--water-tint));
 }
+
+/* Banner content: title + tagline + optional realm pills, aligned to page gutter */
+.hero-inner{max-width:1120px;width:100%;margin:0 auto;padding:22px 20px;}
+.hero-inner h2{margin:0;color:var(--text);font-weight:800;letter-spacing:-.02em;line-height:1.08;font-size:clamp(1.5rem,3.6vw,2.6rem);}
+.hero-inner h2 .accent{color:var(--accent);}
+.hero-inner p{margin:8px 0 0;color:var(--muted);font-size:clamp(.95rem,1.5vw,1.15rem);}
+.hero-pills{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;}
+.hero-pills .pill{font-size:13px;font-weight:600;padding:5px 11px;background:rgba(255,255,255,.55);}
+.hero-banner.home{min-height:clamp(180px,22vw,260px);}
 
 /* 1. Home / Menagerie — all three realms blended (the "whole zoo") */
 .hero-banner.home{background:
@@ -394,8 +389,9 @@
 @media (max-width:720px){
   .hero-banner{
     border-radius:12px;
-    height:clamp(84px,24vw,140px);
+    min-height:clamp(120px,30vw,180px);
   }
+  .hero-inner{padding:18px;}
 }
 
 </style>
@@ -678,6 +674,26 @@ const App={
     // Remove all modifier classes first? Easier to just set className directly
     // preserving the 'hero-banner' base class
     banner.className = `hero-banner ${target}`;
+
+    // Fill the banner with per-view hero content (title + tagline)
+    const META = {
+      home:   {h:`What's your <span class="accent">inner animal?</span>`, p:'A free 2-minute personality quiz · 130 animals · no sign-up', pills:true},
+      quiz:   {h:'The Quiz', p:'Short visual choices reveal your archetype.'},
+      hall:   {h:'The Hall', p:'Every inner animal, ready to meet.'},
+      zoo:    {h:'The Zoo', p:'All 130 inner animals across land, air, and water.'},
+      users:  {h:'Community', p:'See who has found their inner animal.'},
+      about:  {h:'About', p:'How Inner Animal works.'},
+      results:{h:'Your reveal', p:'Meet your inner animal.'},
+    };
+    const m = META[target] || META.home;
+    banner.removeAttribute('role');
+    banner.setAttribute('aria-label', 'Inner Animal');
+    banner.innerHTML = `
+      <div class="hero-inner">
+        <h2>${m.h}</h2>
+        <p>${m.p}</p>
+        ${m.pills ? `<div class="hero-pills"><span class="pill">Land</span><span class="pill">Air</span><span class="pill">Water</span></div>` : ''}
+      </div>`;
   },
 
   setUser(u){
@@ -1193,10 +1209,6 @@ zoo(el,s){
 
     el.innerHTML = `
       <section class="panel">
-        <div class="zoo-hero">
-          <h2>The Zoo</h2>
-          <p>Every inner animal gathered in one place — <span class="zoo-hero-count">${landCount+airCount+waterCount}</span> archetypes across land, air, and water. Browse by realm and rarity, or search for your favorite.</p>
-        </div>
         <div class="zoo-controls">
           <div class="zoo-search">
             <input id="zoo-search-input" type="text" placeholder="Search..." value="${ZooState.search||''}"
@@ -1407,7 +1419,7 @@ class QuizRunner{
 }
 /* ---------- Boot ---------- */
 window.App = App;
-App.render();
+App.nav(App.state.view || 'home');
 </script>
 </body>
 </html>
