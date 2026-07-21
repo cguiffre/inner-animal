@@ -1,5 +1,10 @@
 # Inner Animal — Review Findings & Implementation Plan
 
+> **STATUS 2026-07-20:** Phases 0–6 DONE. **LIVE (static-first): https://inner-animal-production.up.railway.app** · GitHub cguiffre/inner-animal · Railway project inner-animal.
+> Quiz coverage fixed (all 130 reachable, `npm test` guards it) · 130 WebP images (~$2.60) · warm redesign + a11y · full SEO.
+> **REMAINING:** custom domain www.inneranimalquiz.com (Railway dashboard + Hover DNS — user) · Phase 7 backend (6-digit Resend auth + SQLite — next session, needs user creds) · Phase 8 graphify/Fleet/docs (in progress).
+
+
 **Date:** 2026-07-19  **Domain:** https://www.inneranimalquiz.com (Hover, live)
 **Stack target:** GitHub + Railway + Resend + Hover, mirroring the Dungeon Geek setup.
 **Decisions locked:** Warm Notion-style light theme · Static-first launch then backend · Full quiz fix + automated coverage test.

@@ -3,7 +3,7 @@
     "name": "inner-animal",
     "description": "",
     "visualTheme": "Mission Control",
-    "lastUpdated": "2026-07-19T19:53:30-04:00",
+    "lastUpdated": "2026-07-20T17:13:39-04:00",
     "generatedBy": "project-architecture skill"
   },
   "components": [
@@ -12,7 +12,7 @@
       "name": "API Server",
       "type": "backend",
       "provider": "Node/Express",
-      "description": "Express HTTP server: pages, JSON API, auth, webhooks.",
+      "description": "The behind-the-scenes engine that runs the app: it answers requests, handles sign-in, and saves and loads everyone's data.",
       "visualMetaphor": "Mission Control dome",
       "hub": true,
       "confidence": "confirmed",
@@ -25,7 +25,7 @@
       "name": "SQLite",
       "type": "database",
       "provider": "better-sqlite3",
-      "description": "Embedded SQLite datastore.",
+      "description": "The app's memory. It stores everything people create \u2014 accounts, saved results, settings \u2014 so it's all still there when they come back.",
       "visualMetaphor": "Underground data vault",
       "confidence": "needs-review",
       "evidence": [
@@ -37,7 +37,7 @@
       "name": "www.inneranimalquiz.com",
       "type": "domain",
       "provider": "DNS",
-      "description": "Public domain www.inneranimalquiz.com pointing at production hosting.",
+      "description": "The web address people type in to reach the app (www.inneranimalquiz.com), served securely over HTTPS.",
       "visualMetaphor": "Deep-space beacon",
       "confidence": "confirmed",
       "evidence": [
@@ -49,11 +49,23 @@
       "name": "Railway",
       "type": "hosting",
       "provider": "Railway",
-      "description": "Production hosting; Dockerfile build, manual `railway up` deploys.",
+      "description": "The service that keeps the app online around the clock \u2014 it runs the app on the internet and holds onto its data so nothing is lost between visits.",
       "visualMetaphor": "Launch platform",
       "confidence": "confirmed",
       "evidence": [
         "railway.json present"
+      ]
+    },
+    {
+      "id": "github",
+      "name": "GitHub",
+      "type": "source-control",
+      "provider": "GitHub",
+      "description": "Where the app's code is kept and version-tracked; new versions of the live site are published from here.",
+      "visualMetaphor": "Source-code hangar",
+      "confidence": "confirmed",
+      "evidence": [
+        ".git/config: github.com remote"
       ]
     }
   ],
@@ -93,6 +105,18 @@
       "data": "public traffic",
       "trigger": "browser visits",
       "animation": "radar"
+    },
+    {
+      "from": "github",
+      "to": "railway",
+      "confidence": "inferred",
+      "evidence": [
+        "both endpoints detected (github, railway)"
+      ],
+      "label": "deploy",
+      "data": "Docker image build",
+      "trigger": "railway up",
+      "animation": "launch-path"
     }
   ],
   "assets": [
