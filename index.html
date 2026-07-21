@@ -74,7 +74,7 @@
   .wrap{max-width:1120px;margin:0 auto;padding:14px 20px}
   .brand{display:flex;gap:10px;align-items:center}
   .brand h1{font-size:21px;margin:0 0 0 2px;font-weight:700;letter-spacing:-.2px;font-family:"SF Pro Rounded","Nunito",Inter,system-ui,sans-serif}
-  .logo{width:38px;height:38px;border-radius:50%;object-fit:cover}
+  .logo{width:52px;height:52px;border-radius:50%;object-fit:cover}
   /* Nav: horizontal scroll on mobile instead of wrapping (keeps sticky bar short) */
   nav{display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:2px}
   nav::-webkit-scrollbar{display:none}
@@ -363,32 +363,15 @@
 .hero-pills .pill{font-size:13px;font-weight:600;padding:5px 11px;background:rgba(255,255,255,.55);}
 .hero-banner.home{min-height:clamp(180px,22vw,260px);}
 
-/* 1. Home / Menagerie — banner artwork over the blended-realms gradient fallback */
-.hero-banner.home{background:
+/* Every view shares the banner artwork over a blended-realms gradient fallback */
+.hero-banner{background:
   url("images/inner-animal-banner.png") center/cover no-repeat,
-  linear-gradient(120deg, var(--land-tint), var(--air-tint) 55%, var(--water-tint))}
-/* Dark banner art → light overlay text (home view only) */
-.hero-banner.home .hero-inner h2{color:#fff;text-shadow:0 1px 12px rgba(0,0,0,.45)}
-.hero-banner.home .hero-inner h2 .accent{color:#f6a56b}
-.hero-banner.home .hero-inner p{color:rgba(255,255,255,.9);text-shadow:0 1px 10px rgba(0,0,0,.4)}
-
-/* 2. Quiz / Mystery — accent violet */
-.hero-banner.quiz{background:linear-gradient(120deg, var(--accent-soft), #f0ebff 60%, #e7f0fb);border-color:#e0d7f7}
-
-/* 3. Hall / Gallery — warm amber */
-.hero-banner.hall{background:linear-gradient(120deg, #fbeede, #fdf4e6 60%, #fff);border-color:#f0e0c6}
-
-/* 4. The Zoo / Nature — land green */
-.hero-banner.zoo{background:linear-gradient(120deg, var(--land-tint), #eef7f0 60%, #fff);border-color:#d5ecdd}
-
-/* 5. Users / Community — warm coral */
-.hero-banner.users{background:linear-gradient(120deg, #fce4dd, #fdeee9 60%, #fff);border-color:#f4d9d0}
-
-/* 6. About / Info — calm neutral */
-.hero-banner.about{background:linear-gradient(120deg, var(--panel-2), #f8f5ee 60%, #fff)}
-
-/* Results — celebratory violet */
-.hero-banner.results{background:linear-gradient(120deg, var(--accent-soft), #efe7ff 55%, var(--air-tint));border-color:#e0d7f7}
+  linear-gradient(120deg, var(--land-tint), var(--air-tint) 55%, var(--water-tint));
+  border-color:#16283f}
+/* Dark banner art → light overlay text on every view */
+.hero-banner .hero-inner h2{color:#fff;text-shadow:0 1px 12px rgba(0,0,0,.45)}
+.hero-banner .hero-inner h2 .accent{color:#f6a56b}
+.hero-banner .hero-inner p{color:rgba(255,255,255,.9);text-shadow:0 1px 10px rgba(0,0,0,.4)}
 
 @media (max-width:720px){
   .hero-banner{
