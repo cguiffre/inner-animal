@@ -74,7 +74,7 @@
   .wrap{max-width:1120px;margin:0 auto;padding:14px 20px}
   .brand{display:flex;gap:10px;align-items:center}
   .brand h1{font-size:21px;margin:0 0 0 2px;font-weight:700;letter-spacing:-.2px;font-family:"SF Pro Rounded","Nunito",Inter,system-ui,sans-serif}
-  .logo{width:36px;height:36px}
+  .logo{width:36px;height:36px;border-radius:8px;object-fit:cover}
   /* Nav: horizontal scroll on mobile instead of wrapping (keeps sticky bar short) */
   nav{display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:2px}
   nav::-webkit-scrollbar{display:none}
@@ -363,10 +363,14 @@
 .hero-pills .pill{font-size:13px;font-weight:600;padding:5px 11px;background:rgba(255,255,255,.55);}
 .hero-banner.home{min-height:clamp(180px,22vw,260px);}
 
-/* 1. Home / Menagerie — all three realms blended (the "whole zoo") */
+/* 1. Home / Menagerie — banner artwork over the blended-realms gradient fallback */
 .hero-banner.home{background:
-  radial-gradient(circle at 85% -20%, rgba(255,255,255,.6), transparent 50%),
+  url("images/inner-animal-banner.png") center/cover no-repeat,
   linear-gradient(120deg, var(--land-tint), var(--air-tint) 55%, var(--water-tint))}
+/* Dark banner art → light overlay text (home view only) */
+.hero-banner.home .hero-inner h2{color:#fff;text-shadow:0 1px 12px rgba(0,0,0,.45)}
+.hero-banner.home .hero-inner h2 .accent{color:#f6a56b}
+.hero-banner.home .hero-inner p{color:rgba(255,255,255,.9);text-shadow:0 1px 10px rgba(0,0,0,.4)}
 
 /* 2. Quiz / Mystery — accent violet */
 .hero-banner.quiz{background:linear-gradient(120deg, var(--accent-soft), #f0ebff 60%, #e7f0fb);border-color:#e0d7f7}
@@ -405,16 +409,7 @@
 <header>
   <div class="wrap" style="display:flex;justify-content:space-between;align-items:center;gap:14px;">
     <div class="brand">
-      <svg class="logo" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-label="Inner Animal logo">
-        <rect width="64" height="64" rx="14" fill="#6d4bd4"/>
-        <g fill="#ffffff">
-          <ellipse cx="32" cy="41" rx="12.5" ry="10.5"/>
-          <circle cx="17" cy="29" r="5.5"/>
-          <circle cx="26" cy="20" r="5.5"/>
-          <circle cx="38" cy="20" r="5.5"/>
-          <circle cx="47" cy="29" r="5.5"/>
-        </g>
-      </svg>
+      <img class="logo" src="images/inner-animal-logo.png" alt="Inner Animal logo"/>
       <h1>Inner Animal</h1>
     </div>
     <nav>
