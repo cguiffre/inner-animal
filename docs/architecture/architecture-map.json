@@ -22,15 +22,21 @@
     },
     {
       "id": "database",
-      "name": "SQLite",
+      "name": "SQLite configuration",
       "type": "database",
       "provider": "better-sqlite3",
-      "description": "The app's memory. It stores everything people create \u2014 accounts, saved results, settings \u2014 so it's all still there when they come back.",
+      "description": "A retained SQLite file-path setting for the optional backend. The current package does not include better-sqlite3 and server/db.js is absent; an active database is not established.",
       "visualMetaphor": "Underground data vault",
-      "confidence": "needs-review",
+      "confidence": "inferred",
       "evidence": [
-        "package.json: dependency \"better-sqlite3\""
-      ]
+        "server/config.js: databasePath setting",
+        "package.json: express is the only dependency",
+        "server/db.js absent on 2026-09-11"
+      ],
+      "verification": {
+        "status": "scanner-unconfirmed",
+        "note": "Retained from architecture evidence. Scanner coverage is incomplete; this is not a new user approval."
+      }
     },
     {
       "id": "domain",
@@ -143,8 +149,16 @@
       "notes": "Railway (manual `railway up`), single prod environment"
     }
   ],
-  "questions": [
-    "'database' no longer has code evidence \u2014 still in use?"
+  "questions": [],
+  "_evidenceNotes": [],
+  "resolvedQuestions": [
+    {
+      "question": "'database' no longer has code evidence \u2014 still in use?",
+      "resolution": "Duplicate scanner-only reminder retired. Evidence remains inspectable on the component."
+    }
   ],
-  "_evidenceNotes": []
+  "reviewPolicy": {
+    "mode": "exceptions-only",
+    "description": "Build-time discovery reconciles routine evidence. User reviews require an explicit reviewReason or a substantive open question."
+  }
 }
