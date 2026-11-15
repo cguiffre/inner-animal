@@ -11,5 +11,8 @@
   },
   "dependencies": {
     "express": "^4.22.2"
+  },
+  "devDependencies": {
+    "railway": "3.16.0"
   }
 }
