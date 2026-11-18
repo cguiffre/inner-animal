@@ -87,7 +87,8 @@
   .row{display:grid;gap:12px}
   @media(min-width:760px){.row.cols-2{grid-template-columns:1fr 1fr}.row.cols-3{grid-template-columns:repeat(3,1fr)}.row.cols-4{grid-template-columns:repeat(4,1fr)}}
   .card,.opt{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:14px;transition:transform .12s ease,box-shadow .12s ease,border-color .12s ease;display:flex;flex-direction:column;gap:8px;position:relative;}
-  .card:hover,.opt:hover{transform:translateY(-2px);box-shadow:var(--shadow-soft);border-color:var(--accent)}
+  /* hover only on real pointers: on touch it sticks to the next question's card */
+  @media (hover:hover){.card:hover,.opt:hover{transform:translateY(-2px);box-shadow:var(--shadow-soft);border-color:var(--accent)}}
   /* .opt is rendered as a real <button> for keyboard access — reset button chrome */
   .opt{cursor:pointer;text-align:left;font:inherit;color:inherit;width:100%}
   .opt.selected{outline:2px solid var(--accent);outline-offset:2px;border-color:var(--accent)}
@@ -704,11 +705,15 @@ const App={
   
   finishQuiz(r){
     const s=this.state;
-    if(!s.currentUser) return;
+    // No name typed: save under a Guest profile so every finisher gets a reveal.
+    const name=s.currentUser||'Guest';
+    if(!s.users[name]) s.users[name]={username:name,results:[]};
+    s.currentUser=name;
     const rec=Object.assign({chosen_kind:'top'},r,{ts:Date.now()});
     s.users[s.currentUser].results.unshift(rec);
     Store.save(s);
     this.nav('results');
+    bringIntoView(document.querySelector('#app .panel .card'), true);
   },
 
   /* --- SWAP LOGIC (Fixes Dropping Animals) --- */
@@ -1223,6 +1228,13 @@ zoo(el,s){
 /* ---------- Quiz + Scoring ---------- */
 
 function lerp(a,b,t){return a*(1-t)+b*t;}
+// Scroll so el's top sits just under the sticky header (always, or only when it is off screen).
+function bringIntoView(el, always){
+  if(!el || !el.isConnected) return;
+  const h=(document.querySelector('header')?.offsetHeight||0)+8;
+  const r=el.getBoundingClientRect();
+  if(always || r.top<h || r.bottom>innerHeight) window.scrollBy(0, r.top-h);
+}
 
 
 /* ---------- Question views ---------- */
@@ -1374,12 +1386,13 @@ class QuizRunner{
     const slot=this.renderInto.querySelector('#aSlot');
     if(this.aIndex>=this.stageA.length){
       slot.innerHTML='<div class="muted">Stage A complete.</div>';
-      const laneSlot=this.renderInto.querySelector('#laneSlot'); if(laneSlot){ laneSlot.innerHTML=''; laneSlot.appendChild(this.buildLaneUI()); }
+      const laneSlot=this.renderInto.querySelector('#laneSlot'); if(laneSlot){ laneSlot.innerHTML=''; laneSlot.appendChild(this.buildLaneUI()); bringIntoView(laneSlot.firstElementChild); }
       return;
     }
     slot.innerHTML=''; const triad=this.stageA[this.aIndex];
     const selectedIdx=this.selectionsA[this.aIndex];
     slot.appendChild(TriadView(triad,(opt,i)=>{ this.selectionsA[this.aIndex]=i; this.aIndex++; this.recompute(); this.updateCounters(); this.renderA(); }, ()=>{ if(this.aIndex>0){ this.aIndex--; this.recompute(); this.updateCounters(); this.renderA(); } }, ()=>{ this.selectionsA[this.aIndex]=null; this.aIndex++; this.recompute(); this.updateCounters(); this.renderA(); }, selectedIdx));
+    bringIntoView(slot.querySelector('.big'));
   }
   renderB(){
     const slot=this.renderInto.querySelector('#bQ');
@@ -1388,6 +1401,7 @@ class QuizRunner{
       let prelim=computeShortlist(this.userTraits,this.userFacets,this.slider,this.lanePick);
       if((prelim.margin||0)<0.03 && !this._tiebroke){
         this._tiebroke=true; slot.innerHTML=''; slot.appendChild(TieBreakView((opt)=>{ this.addOptionBoost(opt); const final=computeShortlist(this.userTraits,this.userFacets,this.slider,this.lanePick); App.finishQuiz(final);}));
+        bringIntoView(slot.firstElementChild);
         return;
       }
       App.finishQuiz(prelim); return;
@@ -1395,6 +1409,7 @@ class QuizRunner{
     slot.innerHTML=''; const triad=SB[this.bIndex];
     const selectedIdx=this.selectionsB[this.bIndex];
     slot.appendChild(TriadView(triad,(opt,i)=>{ this.selectionsB[this.bIndex]=i; this.bIndex++; this.recompute(); this.updateCounters(); this.renderB(); }, ()=>{ if(this.bIndex>0){ this.bIndex--; this.recompute(); this.updateCounters(); this.renderB(); } else { this.lanePick=null; this.laneB=[]; const bSlot=this.renderInto.querySelector('#bSlot'); if(bSlot) bSlot.style.display='none'; const laneSlot=this.renderInto.querySelector('#laneSlot'); if(laneSlot){ laneSlot.innerHTML=''; laneSlot.appendChild(this.buildLaneUI()); } this.updateCounters(); } }, ()=>{ this.selectionsB[this.bIndex]=null; this.bIndex++; this.recompute(); this.updateCounters(); this.renderB(); }, selectedIdx));
+    bringIntoView(slot.querySelector('.big'));
   }
 }
 /* ---------- Boot ---------- */
