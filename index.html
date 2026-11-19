@@ -103,6 +103,8 @@
   .btn:hover{background:var(--panel-2);border-color:var(--muted)}
   .btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
   .btn.primary:hover{background:#5a3cbc;border-color:#5a3cbc}
+  .btn.start-big{font-size:17px;padding:14px 28px;border-radius:12px}
+  @media(max-width:520px){.btn.start-big{width:100%}}
   .btn.ghost{background:transparent;border-color:transparent;color:var(--muted)}
   .btn.ghost:hover{background:var(--panel-2);color:var(--text)}
   .btn.small{padding:6px 10px;font-size:12px}
@@ -495,6 +497,43 @@ function AnimalCardArt(id, title, variant){
     </div>`;
 }
 
+/* ---------- Share image (IA-Q2) ----------
+   1080x1350 PNG drawn on a canvas from the same-origin art: animal, name, tier, site.
+   Cached per animal so the tap can open the share sheet without waiting. */
+const _shareImgCache={};
+function shareImageFor(t){
+  const key=`${t.id}|${t.name}|${t.lane}`;
+  if(!_shareImgCache[key]) _shareImgCache[key]=drawShareImage(t).catch(e=>{ delete _shareImgCache[key]; throw e; });
+  return _shareImgCache[key];
+}
+async function drawShareImage(t){
+  const W=1080,H=1350,c=document.createElement('canvas'); c.width=W; c.height=H;
+  const g=c.getContext('2d'), css=getComputedStyle(document.documentElement), v=n=>css.getPropertyValue(n).trim();
+  const tierColor={common:'--r-common',less_common:'--r-uncommon',unusual:'--r-unique',bizarre:'--r-bizarre'}[t.lane]||'--r-common';
+  const font='Inter,system-ui,"Segoe UI",Arial,sans-serif';
+  g.fillStyle=v('--bg')||'#faf8f3'; g.fillRect(0,0,W,H);
+  // Art in a rounded frame; a plain tint if the image can't load.
+  const S=820,X=(W-S)/2,Y=90;
+  g.save(); g.beginPath(); g.roundRect(X,Y,S,S,48); g.clip();
+  g.fillStyle=v('--accent-soft')||'#efeafb'; g.fillRect(X,Y,S,S);
+  try{ const img=new Image(); img.src=animalImageUrl(t.id); await img.decode(); g.drawImage(img,X,Y,S,S); }catch(e){}
+  g.restore();
+  g.textAlign='center'; g.textBaseline='alphabetic';
+  g.fillStyle=v('--muted')||'#726b5f'; g.font=`600 40px ${font}`;
+  g.fillText('My inner animal is the', W/2, 1010);
+  let size=88; g.font=`800 ${size}px ${font}`;
+  while(g.measureText(t.name).width>W-120 && size>44){ size-=4; g.font=`800 ${size}px ${font}`; }
+  g.fillStyle=v('--text')||'#231f1a'; g.fillText(t.name, W/2, 1105);
+  // Tier pill
+  const tier=rarityBucket(t.lane); g.font=`700 38px ${font}`;
+  const pw=g.measureText(tier).width+64;
+  g.fillStyle=v(tierColor)||'#2f9e63'; g.beginPath(); g.roundRect((W-pw)/2,1140,pw,64,32); g.fill();
+  g.fillStyle='#ffffff'; g.fillText(tier, W/2, 1185);
+  g.fillStyle=v('--accent')||'#6d4bd4'; g.font=`700 42px ${font}`;
+  g.fillText('inneranimalquiz.com', W/2, 1290);
+  return new Promise((res,rej)=>c.toBlob(b=>b?res(b):rej(new Error('toBlob failed')),'image/png'));
+}
+
 /* ---------- Utility ---------- */
 function locomotionToRealm(locomotions){const s=new Set(locomotions||[]); if(s.has('flyer')||s.has('glider')) return 'air'; if(s.has('swimmer')||s.has('diver')) return 'water'; return 'land';}
 // rarityBias now lives in quiz_logic.js (loaded above).
@@ -645,6 +684,8 @@ const App={
   // fromHistory: called by Back/Forward, so don't add a new history entry (IA-V4).
   nav(t, fromHistory){
     if(!VIEWS.includes(t)) t='home';
+    // IA-C3: the friend comparison ends a quiz only when that quiz was opened from it.
+    if(!fromHistory && t==='quiz') this.quizFromCompare = this.state.view==='compare';
     if(!fromHistory && t!==this.state.view) history.pushState({view:t}, '', t==='home' ? location.pathname : '#'+t);
     this.state.view=t;
     document.querySelectorAll('nav button').forEach(b=>{b.classList.remove('active');b.removeAttribute('aria-current');});
@@ -728,7 +769,7 @@ const App={
     const rec=Object.assign({chosen_kind:'top'},r,{ts:Date.now()});
     s.users[s.currentUser].results.unshift(rec);
     Store.save(s);
-    this.nav(this.compare && this.compare.status==='ok' ? 'compare' : 'results');
+    this.nav(this.quizFromCompare && this.compare && this.compare.status==='ok' ? 'compare' : 'results');
     bringIntoView(document.querySelector('#app .panel .card'), true);
   },
 
@@ -746,6 +787,28 @@ const App={
     }
     try{ await navigator.clipboard.writeText(`${text} ${url}`); if(status) status.textContent='Copied — paste it anywhere'; }
     catch(e){ if(status) status.textContent='Couldn\'t copy. Take a screenshot instead.'; }
+  },
+
+  // IA-Q2: a postable picture of the result. Files go to the share sheet where the
+  // browser takes them; everywhere else the PNG downloads.
+  async shareImage(btn){
+    const u=this.state.users[this.state.currentUser], t=u&&u.results[0]&&u.results[0].top;
+    if(!t) return;
+    const status=btn&&btn.parentNode.querySelector('.share-status');
+    const say=m=>{ if(status) status.textContent=m; };
+    try{
+      const blob=await shareImageFor(t);
+      const file=new File([blob], `inner-animal-${String(t.id).replace(/[^a-z_]/g,'')}.png`, {type:'image/png'});
+      if(navigator.canShare && navigator.canShare({files:[file]})){
+        try{ await navigator.share({files:[file], title:'Inner Animal', text:`My inner animal is the ${t.name}. Find yours at inneranimalquiz.com`}); return; }
+        catch(e){ if(e && e.name==='AbortError') return; }
+      }
+      const a=document.createElement('a');
+      a.href=URL.createObjectURL(blob); a.download=file.name;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(()=>URL.revokeObjectURL(a.href), 10000);
+      say('Image saved — post it anywhere');
+    }catch(e){ say('Couldn\'t make the image. Take a screenshot instead.'); }
   },
 
   /* --- SWAP LOGIC (Fixes Dropping Animals) --- */
@@ -938,13 +1001,13 @@ const Views={
             <h2 class="big">Find your Inner Animal</h2>
             <p class="muted">Short, visual choices → a smart shortlist → a delightful reveal. Multi-user friendly with saved history.</p>
             <div class="controls">
-              <div>${ s.currentUser?`<div class="pill">Signed in as <strong>${s.currentUser}</strong></div>`:'<div class="pill">No user selected</div>' }</div>
-              <div>${ s.currentUser?`<button class="btn primary" onclick="App.startQuiz()">Start Quiz</button> <button class="btn" onclick="App.nav('hall')">View Hall</button>`:'' }</div>
+              <button class="btn primary start-big" onclick="App.startQuiz()">Start the quiz</button>
+              ${ s.currentUser?`<div class="pill">Playing as <strong>${s.currentUser}</strong></div>`:'' }
             </div>
           </div>
           <div>
             <div class="card">
-              <h4>Create or choose a user</h4>
+              <h4>Add your name <span class="muted small" style="font-weight:400">(optional)</span><span class="info" role="button" tabindex="0" aria-label="About names" onclick="this.classList.toggle('open');event.stopPropagation()">i<span class="tip">No sign-up needed. A name only keeps your results apart from others who use this device.</span></span></h4>
               <div class="row cols-2">
                 <input id="newUser" placeholder="Enter username" style="padding:10px;border-radius:10px;border:1px solid var(--border);background:var(--panel);color:var(--text)"/>
                 <button class="btn" onclick="(function(){const u=document.getElementById('newUser').value.trim();if(u){App.setUser(u); const has=(App.state.users[u]&&App.state.users[u].results&&App.state.users[u].results.length>0); if(has){App.nav('results');} else {App.startQuiz();}}})()">Go</button>
@@ -1067,7 +1130,8 @@ results(el,s){
         ${ResultCard(active)}
 
         <div class="controls" style="margin-top:18px;border-top:1px solid var(--border);padding-top:14px">
-          <button class="btn primary" onclick="App.shareResult(this)">Share my animal</button>
+          <button class="btn primary" onclick="App.shareImage(this)">Share image</button>
+          <button class="btn" onclick="App.shareResult(this)">Share link</button>
           <button class="btn" onclick="App.nav('hall')">View Hall</button>
           <span class="share-status small" role="status" aria-live="polite"></span>
         </div>
@@ -1081,6 +1145,7 @@ results(el,s){
         </div>
       </section>
     `;
+    if(active.top) shareImageFor(active.top).catch(()=>{}); // ready before the tap
   },
 
   // IA-M1: a friend's shared link next to this browser's latest result. Only catalog data is rendered.

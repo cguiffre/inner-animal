@@ -1,5 +1,5 @@
 'use strict';
-// Guards for Secret Shopper findings IA-V2, IA-C1 and IA-R2.
+// Guards for Secret Shopper findings IA-V2, IA-C1, IA-R2 and IA-R4.
 const test = require('node:test');
 const assert = require('node:assert');
 const path = require('node:path');
@@ -37,5 +37,22 @@ test('IA-R2: the shadow is never also a near match, and its % is its own score',
     assert.notStrictEqual(r.shadow.id, r.top.id);
     assert.ok(!r.alternates.some(a => a.id === r.shadow.id), `${r.shadow.name} is both near match and shadow`);
     assert.ok(r.shadow.confidence <= r.top.confidence, `${r.shadow.name} outscores the top match`);
+  }
+});
+
+test('IA-R4: near matches share trait words with the top animal; the Shadow shares none', () => {
+  let seed = 7;
+  const rnd = () => (seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648;
+  for (let i = 0; i < 300; i++) {
+    const lane = ['air', 'land', 'water'][i % 3];
+    const choice = {};
+    [...TRIADS, ...LANE_TRIADS[lane]].forEach(q => { choice[q.id] = Math.floor(rnd() * 3); });
+    const r = simulate(choice, Math.floor(rnd() * 101), lane);
+    const top = new Set(r.top.traits);
+    const shared = a => a.traits.filter(t => top.has(t)).length;
+    assert.strictEqual(r.alternates.length, 2);
+    for (const a of r.alternates) assert.ok(shared(a) >= 2, `near match ${a.id} shares ${shared(a)} words with ${r.top.id}`);
+    assert.ok(r.shadow, 'every run has a Shadow');
+    assert.strictEqual(shared(r.shadow), 0, `Shadow ${r.shadow.id} shares words with ${r.top.id}`);
   }
 });

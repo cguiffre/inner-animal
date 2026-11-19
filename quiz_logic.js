@@ -275,16 +275,19 @@ function shadowCandidate(scored, excludeIds){
   const top = scored[0].animal;
   const skip = new Set(excludeIds||[]); skip.add(top.id);
   const flatTop = Array.isArray(top.traits) ? top.traits : Object.values(top.traits||{}).flat();
+  // ANTONYM is written one way (calm->intense); read it both ways.
   const opposites = new Set();
+  const own = new Set(flatTop);
   flatTop.forEach(t=>{ if(ANTONYM[t]) opposites.add(ANTONYM[t]); });
-  let best = null, bestScore = -1;
+  for(const k in ANTONYM){ if(own.has(ANTONYM[k])) opposites.add(k); }
+  let best = null, bestScore = -Infinity;
   for(let i=1;i<scored.length;i++){
     const a = scored[i].animal; if(!a || skip.has(a.id)) continue;
     const tr = Array.isArray(a.traits) ? a.traits : Object.values(a.traits||{}).flat();
+    // Opposite words count for it, any word it shares with the top counts double against.
     let hit = 0;
-    for(const t of tr){ if(opposites.has(t)) hit++; }
+    for(const t of tr){ if(opposites.has(t)) hit++; if(own.has(t)) hit-=2; }
     if(hit>bestScore){ best = a; bestScore = hit; }
-    if(bestScore>=3) break;
   }
   return best;
 }
@@ -392,26 +395,14 @@ function computeShortlist(userTraitsCounts,userFacetsSets,slider,lanePick){
     };
   };
 
-  const realmTop = getRealm(top);
-  const laneTop = top.rarity_lane||'common';
-  const seen = new Set([top.id]);
-  const alts=[];
-
-  for(const s of scored.slice(1)){
-    const a=s.animal; if(!a||seen.has(a.id)) continue;
-    const diverse = ((a.rarity_lane||'common')!==laneTop)||(getRealm(a)!==realmTop);
-    if(!diverse) continue;
-    seen.add(a.id);
-    alts.push(packageAnimal(s));
-    if(alts.length===2) break;
-  }
-  for(const s of scored.slice(1)){
-    if(alts.length>=2) break;
-    if(!seen.has(s.animal.id)){
-      seen.add(s.animal.id);
-      alts.push(packageAnimal(s));
-    }
-  }
+  // Near matches (IA-R4): the next-best scores that share 2+ shown trait words
+  // with the top, topped up by plain next-best. The old "diverse" filter forced a
+  // different tier, and each realm+tier shares one trait set, so near matches
+  // never shared a word with the top animal.
+  const topWords = new Set(normList(flattenTraits(top)));
+  const alike = s => normList(flattenTraits(s.animal)).filter(t=>topWords.has(t)).length >= 2;
+  const rest = scored.slice(1);
+  const alts = [...rest.filter(alike), ...rest.filter(s=>!alike(s))].slice(0,2).map(packageAnimal);
 
   const shadowCand = shadowCandidate(scored, alts.map(a=>a.id));
   // The shadow's % is its own match score, not a fixed share of the top's.
