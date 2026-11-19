@@ -471,12 +471,31 @@ function simulate(choiceIndexByQuestionId, slider, lanePick){
   return computeShortlist(userTraits,userFacets,slider,lanePick);
 }
 
+/* ---------- Compare-by-link (IA-M1) ---------- */
+// The link carries only an animal id and a whole-number match %, nothing typed by a person.
+function compareLink(id, confidence){
+  const pct=Math.max(0,Math.min(100,Math.round((confidence||0)*100)));
+  return `?vs=${encodeURIComponent(id)}&m=${pct}`;
+}
+// Strict decode: 'none' (no vs param), 'bad' (anything off), or 'ok' with the catalog's own animal.
+function readCompareLink(search, animals){
+  const p=new URLSearchParams(search||'');
+  if(!p.has('vs')) return {status:'none'};
+  const ids=p.getAll('vs'), ms=p.getAll('m');
+  if(ids.length!==1 || ms.length!==1) return {status:'bad'};
+  if(!/^[a-z_]{1,40}$/.test(ids[0]) || !/^\d{1,3}$/.test(ms[0])) return {status:'bad'};
+  const pct=Number(ms[0]);
+  const animal=(animals||[]).find(a=>a.id===ids[0]);
+  if(!animal || pct>100) return {status:'bad'};
+  return {status:'ok', animal, pct};
+}
+
 /* ---------- Dual export ---------- */
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
     TRIADS, LANE_TRIADS, ANTONYM, REACHABLE_TOKENS,
     getRealm, rarityBias, normalize, facetOverlapRatio, shadowCandidate,
     computeShortlist, flattenTraits, flattenFacets, rarityBucket, questionTotal,
-    accumulateAnswers, simulate
+    accumulateAnswers, simulate, compareLink, readCompareLink
   };
 }

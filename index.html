@@ -314,6 +314,9 @@
   .info .tip{display:none;position:absolute;left:-8px;top:24px;z-index:60;width:250px;max-width:calc(100vw - 48px);background:var(--text);color:#fff;padding:10px 12px;border-radius:10px;font:400 12.5px/1.5 Inter,system-ui,sans-serif;text-align:left;box-shadow:var(--shadow-soft);white-space:normal}
   .info:hover .tip,.info.open .tip{display:block}
   .share-status{color:var(--good);font-weight:600}
+  .reading{margin:10px 0 0;line-height:1.55}
+  /* compare stays two-up even on phones: that is the point of it */
+  .vs-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 
   .zoo-mini{
     width:100%;
@@ -420,6 +423,7 @@
 <footer class="wrap small">© 2025 Inner Animal. This playful quiz uses “animal archetype” language out of respect for Indigenous cultural terms.</footer>
 
 <script src="animal_data.js"></script>
+<script src="animal_readings.js"></script>
 <script src="quiz_logic.js"></script>
 
 <script>
@@ -632,7 +636,9 @@ const Store = {
 };
 
 /* ---------- Core App ---------- */
-const VIEWS=['home','quiz','results','hall','zoo','users','about'];
+const VIEWS=['home','quiz','results','hall','zoo','users','about','compare'];
+// own-key lookup so a stored id like "constructor" never prints an object
+function readingFor(id){ return Object.prototype.hasOwnProperty.call(READINGS,id) ? READINGS[id] : ''; }
 const App={
   state:Object.assign({},Store.load(),{view:null}),
   
@@ -674,6 +680,7 @@ const App={
       users:  {h:'Community', p:'See who has found their inner animal.'},
       about:  {h:'About', p:'How Inner Animal works.'},
       results:{h:'Your reveal', p:'Meet your inner animal.'},
+      compare:{h:'Side by side', p:'Your inner animal next to a friend\'s.'},
     };
     const m = META[target] || META.home;
     banner.removeAttribute('role');
@@ -721,7 +728,7 @@ const App={
     const rec=Object.assign({chosen_kind:'top'},r,{ts:Date.now()});
     s.users[s.currentUser].results.unshift(rec);
     Store.save(s);
-    this.nav('results');
+    this.nav(this.compare && this.compare.status==='ok' ? 'compare' : 'results');
     bringIntoView(document.querySelector('#app .panel .card'), true);
   },
 
@@ -730,8 +737,9 @@ const App={
     const u=this.state.users[this.state.currentUser], t=u&&u.results[0]&&u.results[0].top;
     if(!t) return;
     const status=btn&&btn.parentNode.querySelector('.share-status');
-    const url=location.origin+'/';
-    const text=`My inner animal is the ${t.name} (${rarityBucket(t.lane)}). What's yours?`;
+    const r=u.results[0];
+    const url=location.origin+'/'+compareLink(t.id, t.confidence!==undefined ? t.confidence : r.confidence);
+    const text=`My inner animal is the ${t.name} (${rarityBucket(t.lane)}). Take the quiz and see how we compare:`;
     if(navigator.share){
       try{ await navigator.share({title:'Inner Animal', text, url}); return; }
       catch(e){ if(e && e.name==='AbortError') return; }
@@ -865,6 +873,7 @@ const App={
     if(s.view==='zoo') return Views.zoo(root,s);
     if(s.view==='users') return Views.users(root,s);
     if(s.view==='about') return Views.about(root,s);
+    if(s.view==='compare') return Views.compare(root,s);
   }
 };
 
@@ -886,6 +895,7 @@ function ResultCard(result){
       AnimalCardArt(t.id||'unknown', t.name||'', 'hero')+
       `<h3 class="big">${t.name||'Unknown'}</h3>`+
       `<div class="traits">${traits.map(x=>`<span class='pill'>${x}</span>`).join('')}</div>`+
+      (readingFor(t.id) ? `<p class="reading">${readingFor(t.id)}</p>` : '')+
       `<div style="margin-top:8px;display:flex;justify-content:space-between;align-items:center;">`+
         `<div>${laneBadge(t.lane||'common')}</div>`+
         `<div class="small" style="font-weight:600;color:var(--accent2)">${conf}% Match</div>`+
@@ -1071,6 +1081,33 @@ results(el,s){
         </div>
       </section>
     `;
+  },
+
+  // IA-M1: a friend's shared link next to this browser's latest result. Only catalog data is rendered.
+  compare(el,s){
+    const c=App.compare;
+    if(!c || c.status!=='ok'){
+      el.innerHTML=`<section class="panel"><h2 class="big">This link doesn't work</h2><p class="muted">Ask your friend to share it again, or find your own animal.</p><div class="controls"><button class="btn primary" onclick="App.startQuiz()">Take the quiz</button></div></section>`;
+      return;
+    }
+    const a=c.animal;
+    const friend={id:a.id,name:a.display_name,lane:a.rarity_lane,traits:Array.from(new Set(flattenTraits(a))).slice(0,5),confidence:c.pct/100};
+    const u=s.users[s.currentUser], mine=u&&u.results&&u.results[0]&&u.results[0].top;
+    const side=(label,rec)=>`<div><div class="small muted" style="font-weight:600;margin-bottom:4px">${label}</div>${ResultMiniCard(rec)}</div>`;
+    const readingBlock=(label,rec)=>readingFor(rec.id)?`<p class="reading"><strong>${label} · ${rec.name}.</strong> ${readingFor(rec.id)}</p>`:'';
+    let body;
+    if(mine){
+      const fs=new Set(friend.traits), shared=(mine.traits||[]).filter(x=>fs.has(x));
+      const same=mine.id===friend.id;
+      body=`<div class="vs-grid">${side('Your friend',friend)}${side('You',mine)}</div>
+        <p class="big" style="margin:14px 0 0">${same?'Same animal! Two of a kind.':shared.length?`You share: ${shared.join(', ')}`:'Nothing in common: opposites attract.'}</p>
+        ${readingBlock('Your friend',friend)}${same?'':readingBlock('You',mine)}
+        <div class="controls" style="margin-top:14px"><button class="btn primary" onclick="App.shareResult(this)">Share mine back</button><button class="btn" onclick="App.nav('results')">My full reveal</button><span class="share-status small" role="status" aria-live="polite"></span></div>`;
+    } else {
+      body=`<div class="vs-grid">${side('Your friend',friend)}<div class="card" style="display:flex;flex-direction:column;justify-content:center;gap:10px"><h4>You?</h4><button class="btn primary" onclick="App.startQuiz()">Take the quiz</button></div></div>
+        ${readingBlock('Your friend',friend)}`;
+    }
+    el.innerHTML=`<section class="panel"><h2 class="big">Your friend is a ${friend.name}</h2>${body}</section>`;
   },
 
   hall(el,s){
@@ -1496,7 +1533,9 @@ window.addEventListener('popstate', (e)=>{
   App.nav(st.view, true);
 });
 {
-  const start=VIEWS.includes(location.hash.slice(1)) ? location.hash.slice(1) : 'home';
+  App.compare=readCompareLink(location.search, window.ANIMALS);
+  const hashView=location.hash.slice(1);
+  const start=App.compare.status!=='none' && (!hashView || hashView==='compare') ? 'compare' : (VIEWS.includes(hashView) ? hashView : 'home');
   history.replaceState({view:start}, '', location.href);
   App.nav(start, true);
 }

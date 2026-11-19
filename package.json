@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "python3 -m http.server 8080",
     "start": "node server/index.js",
-    "build": "rm -rf dist && mkdir -p dist && cp index.html animal_data.js quiz_logic.js favicon.svg apple-touch-icon.png og-image.png robots.txt sitemap.xml llms.txt dist/ 2>/dev/null; cp -r images dist/; true",
+    "build": "rm -rf dist && mkdir -p dist && cp index.html animal_data.js animal_readings.js quiz_logic.js favicon.svg apple-touch-icon.png og-image.png robots.txt sitemap.xml llms.txt dist/ 2>/dev/null; cp -r images dist/; true",
     "test": "node --test 'server/test/*.test.js'"
   },
   "dependencies": {
