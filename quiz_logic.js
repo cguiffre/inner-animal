@@ -268,22 +268,25 @@ function normalize(vec){let sum=0;for(const k in vec) sum+=vec[k]*vec[k];const n
 
 function facetOverlapRatio(userF,animal){const dims=["diel","sociality","locomotion","biome","diet"];let matches=0,total=0;for(const d of dims){const w=(d==="diel"||d==="sociality")?1.2:1.0;total+=w;const aVals=new Set((animal.facets&&animal.facets[d])||[]);const uVals=userF[d]||new Set();let ov=0; for(const v of uVals) if(aVals.has(v)){ov=1;break;} matches+=w*ov;} return matches/total;}
 
-function shadowCandidate(scored){
+// Pick the ranked animal whose traits most oppose the top match, skipping the
+// near matches (IA-R2: the same animal showed as near match AND opposite).
+function shadowCandidate(scored, excludeIds){
   if(!Array.isArray(scored) || scored.length<2) return null;
   const top = scored[0].animal;
+  const skip = new Set(excludeIds||[]); skip.add(top.id);
   const flatTop = Array.isArray(top.traits) ? top.traits : Object.values(top.traits||{}).flat();
   const opposites = new Set();
   flatTop.forEach(t=>{ if(ANTONYM[t]) opposites.add(ANTONYM[t]); });
   let best = null, bestScore = -1;
   for(let i=1;i<scored.length;i++){
-    const a = scored[i].animal; if(!a || a.id===top.id) continue;
+    const a = scored[i].animal; if(!a || skip.has(a.id)) continue;
     const tr = Array.isArray(a.traits) ? a.traits : Object.values(a.traits||{}).flat();
     let hit = 0;
     for(const t of tr){ if(opposites.has(t)) hit++; }
     if(hit>bestScore){ best = a; bestScore = hit; }
     if(bestScore>=3) break;
   }
-  return best || scored[1].animal;
+  return best;
 }
 
 /* ---------- Zoo/flatten helpers ---------- */
@@ -410,17 +413,9 @@ function computeShortlist(userTraitsCounts,userFacetsSets,slider,lanePick){
     }
   }
 
-  const shadowCand = shadowCandidate(scored);
-  let shadow=null;
-  if(shadowCand){
-     shadow = {
-        id:shadowCand.id,
-        name:shadowCand.display_name||shadowCand.name||'Unknown',
-        lane:shadowCand.rarity_lane||'common',
-        traits:normList(flattenTraits(shadowCand)),
-        confidence: (conf * 0.85)
-     };
-  }
+  const shadowCand = shadowCandidate(scored, alts.map(a=>a.id));
+  // The shadow's % is its own match score, not a fixed share of the top's.
+  const shadow = shadowCand ? packageAnimal(scored.find(s=>s.animal.id===shadowCand.id)) : null;
 
   return {
     top: packageAnimal(topRec),
@@ -428,6 +423,19 @@ function computeShortlist(userTraitsCounts,userFacetsSets,slider,lanePick){
     shadow:shadow,
     margin:(s0-s1), top_score:s0, second_score:s1, confidence:conf
   };
+}
+
+/* ---------- Display helpers ---------- */
+// One tier ladder everywhere: result, Pack and Zoo (IA-C1).
+function rarityBucket(lane){
+  const map = {common:'Common', less_common:'Uncommon', unusual:'Unique', bizarre:'Bizarre'};
+  return map[lane] || 'Common';
+}
+// Total questions a quiz-taker answers: Stage A + base Stage B + the lane's
+// questions. Counted up front so the total never jumps after the lane pick (IA-V2).
+function questionTotal(){
+  const laneMax = Math.max(0, ...Object.values(LANE_TRIADS).map(l=>l.length));
+  return TRIADS.length + laneMax;
 }
 
 /* ---------- Test/simulation helpers ---------- */
@@ -468,7 +476,7 @@ if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
     TRIADS, LANE_TRIADS, ANTONYM, REACHABLE_TOKENS,
     getRealm, rarityBias, normalize, facetOverlapRatio, shadowCandidate,
-    computeShortlist, flattenTraits, flattenFacets,
+    computeShortlist, flattenTraits, flattenFacets, rarityBucket, questionTotal,
     accumulateAnswers, simulate
   };
 }

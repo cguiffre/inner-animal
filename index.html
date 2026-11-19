@@ -14,7 +14,7 @@
 <meta property="og:type" content="website"/>
 <meta property="og:site_name" content="Inner Animal"/>
 <meta property="og:title" content="Inner Animal — What's Your Inner Animal?"/>
-<meta property="og:description" content="A free personality quiz matching you to one of 130 animals across Land, Air, and Water. Take it in two minutes — no sign-up."/>
+<meta property="og:description" content="A free personality quiz matching you to one of 130 animals across Land, Air, and Water. 34 quick questions, no sign-up."/>
 <meta property="og:url" content="https://www.inneranimalquiz.com/"/>
 <meta property="og:image" content="https://www.inneranimalquiz.com/og-image.png"/>
 <meta property="og:image:width" content="1200"/>
@@ -305,6 +305,15 @@
     font-weight:600;
     font-size:.9rem;
   }
+  /* Zoo collection (IA-C2): found cards wear the accent; the rest stay quiet */
+  .zoo-card.found{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset,var(--shadow-card)}
+  .zoo-card .found-tag{position:absolute;top:12px;left:12px;z-index:1;background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:600}
+  .zoo-stat-card.found-stat{border-color:var(--accent);background:var(--accent-soft)}
+  /* House info icon: explanatory copy lives behind it (hover or tap) */
+  .info{display:inline-block;position:relative;width:18px;height:18px;border-radius:50%;background:#2f7bff;color:#fff;font:italic 700 12px/18px Georgia,serif;text-align:center;cursor:help;margin-left:6px;vertical-align:middle;text-transform:none;letter-spacing:0}
+  .info .tip{display:none;position:absolute;left:-8px;top:24px;z-index:60;width:250px;max-width:calc(100vw - 48px);background:var(--text);color:#fff;padding:10px 12px;border-radius:10px;font:400 12.5px/1.5 Inter,system-ui,sans-serif;text-align:left;box-shadow:var(--shadow-soft);white-space:normal}
+  .info:hover .tip,.info.open .tip{display:block}
+  .share-status{color:var(--good);font-weight:600}
 
   .zoo-mini{
     width:100%;
@@ -415,14 +424,10 @@
 
 <script>
 /* getRealm, TRIADS, LANE_TRIADS, ANTONYM, rarityBias, normalize,
-   facetOverlapRatio, shadowCandidate, computeShortlist, flattenTraits and
-   flattenFacets now live in quiz_logic.js (loaded above) so they can be unit
+   facetOverlapRatio, shadowCandidate, computeShortlist, flattenTraits,
+   flattenFacets, rarityBucket and questionTotal now live in quiz_logic.js (loaded above) so they can be unit
    tested in Node; they are visible here as classic-script globals. */
 
-function rarityBucket(lane){
-  const map = {common:'Common', less_common:'Uncommon', unusual:'Unique', bizarre:'Bizarre'};
-  return map[lane] || 'Common';
-}
 
 </script>
 
@@ -627,10 +632,14 @@ const Store = {
 };
 
 /* ---------- Core App ---------- */
+const VIEWS=['home','quiz','results','hall','zoo','users','about'];
 const App={
-  state:Object.assign({},Store.load(),{view:'home'}),
+  state:Object.assign({},Store.load(),{view:null}),
   
-  nav(t){
+  // fromHistory: called by Back/Forward, so don't add a new history entry (IA-V4).
+  nav(t, fromHistory){
+    if(!VIEWS.includes(t)) t='home';
+    if(!fromHistory && t!==this.state.view) history.pushState({view:t}, '', t==='home' ? location.pathname : '#'+t);
     this.state.view=t;
     document.querySelectorAll('nav button').forEach(b=>{b.classList.remove('active');b.removeAttribute('aria-current');});
     const btn=document.getElementById('nav-'+t);
@@ -658,7 +667,7 @@ const App={
 
     // Fill the banner with per-view hero content (title + tagline)
     const META = {
-      home:   {h:`What's your <span class="accent">inner animal?</span>`, p:'A free 2-minute personality quiz · 130 animals · no sign-up', pills:true},
+      home:   {h:`What's your <span class="accent">inner animal?</span>`, p:'A free personality quiz · 34 quick questions · 130 animals · no sign-up', pills:true},
       quiz:   {h:'The Quiz', p:'Short visual choices reveal your archetype.'},
       hall:   {h:'The Hall', p:'Every inner animal, ready to meet.'},
       zoo:    {h:'The Zoo', p:'All 130 inner animals across land, air, and water.'},
@@ -714,6 +723,21 @@ const App={
     Store.save(s);
     this.nav('results');
     bringIntoView(document.querySelector('#app .panel .card'), true);
+  },
+
+  // Share the active result (IA-Q2): the phone's share sheet, or copy to clipboard.
+  async shareResult(btn){
+    const u=this.state.users[this.state.currentUser], t=u&&u.results[0]&&u.results[0].top;
+    if(!t) return;
+    const status=btn&&btn.parentNode.querySelector('.share-status');
+    const url=location.origin+'/';
+    const text=`My inner animal is the ${t.name} (${rarityBucket(t.lane)}). What's yours?`;
+    if(navigator.share){
+      try{ await navigator.share({title:'Inner Animal', text, url}); return; }
+      catch(e){ if(e && e.name==='AbortError') return; }
+    }
+    try{ await navigator.clipboard.writeText(`${text} ${url}`); if(status) status.textContent='Copied — paste it anywhere'; }
+    catch(e){ if(status) status.textContent='Couldn\'t copy. Take a screenshot instead.'; }
   },
 
   /* --- SWAP LOGIC (Fixes Dropping Animals) --- */
@@ -845,7 +869,7 @@ const App={
 };
 
 /* ---------- Views ---------- */
-function laneBadge(l){const map={common:'Familiar',less_common:'Less-common',unusual:'Unusual',bizarre:'Bizarre'}; return `<span class="pill">${map[l]||l}</span>`;}
+function laneBadge(l){return `<span class="pill">${rarityBucket(l)}</span>`;}
 function ResultCard(result){
   const t=(result&&result.top)||{};
   const traits=Array.isArray(t.traits)?t.traits:[];
@@ -1033,7 +1057,9 @@ results(el,s){
         ${ResultCard(active)}
 
         <div class="controls" style="margin-top:18px;border-top:1px solid var(--border);padding-top:14px">
+          <button class="btn primary" onclick="App.shareResult(this)">Share my animal</button>
           <button class="btn" onclick="App.nav('hall')">View Hall</button>
+          <span class="share-status small" role="status" aria-live="polite"></span>
         </div>
       </section>
 
@@ -1067,6 +1093,9 @@ results(el,s){
   },
 zoo(el,s){
     const query = (ZooState.search || '').toLowerCase();
+    // Animals this profile has found: the top animal of each saved result (IA-C2).
+    const me = s.users[s.currentUser];
+    const found = new Set(((me && me.results) || []).map(r => r.top && r.top.id).filter(Boolean));
 
     // Build realm + rarity buckets with optional search filter
     const groups = {
@@ -1103,6 +1132,7 @@ zoo(el,s){
         <div class="zoo-stat-card"><div class="zoo-stat-label">Land</div><div class="zoo-stat-value">${landCount}</div></div>
         <div class="zoo-stat-card"><div class="zoo-stat-label">Air</div><div class="zoo-stat-value">${airCount}</div></div>
         <div class="zoo-stat-card"><div class="zoo-stat-label">Water</div><div class="zoo-stat-value">${waterCount}</div></div>
+        <div class="zoo-stat-card found-stat"><div class="zoo-stat-label">Found</div><div class="zoo-stat-value">${found.size} of ${catalog.length}</div></div>
       </div>`;
 
     const makeAnimalCard = (an)=>{
@@ -1111,8 +1141,10 @@ zoo(el,s){
       const realm = getRealm(an);
       const tint = ({land:'var(--land)',air:'var(--air)',water:'var(--water)'})[realm] || 'var(--accent)';
       const style = `border-top:3px solid ${tint};`;
+      const isFound = found.has(an.id);
       return `
-        <div class="zoo-card" style="${style}">
+        <div class="zoo-card${isFound ? ' found' : ''}" style="${style}">
+          ${isFound ? '<span class="pill found-tag">Found</span>' : ''}
           <div class="zoo-mini">
             ${imgUrl ? `<img src="${imgUrl}" alt="${name}" loading="lazy" decoding="async" data-animal-id="${an.id||'unknown'}" data-animal-title="${(name||'').replace(/"/g,'&quot;')}" onerror="AnimalImgFallback(this)"/>` : `<div class="muted small" style="padding:8px;">No image</div>`}
           </div>
@@ -1137,12 +1169,13 @@ zoo(el,s){
       const cols = RARITY_BUCKETS.map(bucket=>{
         const animals = groups[realm][bucket] || [];
         const total = animals.length;
+        const foundHere = animals.filter(a => found.has(a.id)).length;
         const openBucket = ZooState.bucketOpen[realm][bucket];
 
         const headerRow = `
           <div class="zoo-bucket-header" onclick="ZooHandlers.toggleBucket('${realm}','${bucket}')">
             <h4>${bucket}</h4>
-            <span class="muted small">${total}</span>
+            <span class="muted small">${found.size && total ? `${foundHere} of ${total} found` : total}</span>
             <button type="button" class="btn small btn-icon">${openBucket ? '−' : '+'}</button>
           </div>`;
 
@@ -1222,7 +1255,15 @@ zoo(el,s){
   about(el){ el.innerHTML=`
     <section class="panel">
       <h2 class="big">About</h2>
-      <p class="muted">Version 1.0 adds a modern, low-glow look and inline SVG artwork for the logo and animals. The quiz keeps lane-specific prompts, a tie-break step for close matches, a Familiar ↔ Surprising slider with snapping, progress counter, 0.6/0.4 scoring, and a confidence meter. After results, you can choose Top / Near Miss / Shadow as your saved Inner Animal.</p>
+      <p>Inner Animal matches you to one of 130 real animals across land, air and water. It's free and needs no account.</p>
+      <h3>How your match is picked</h3>
+      <p>You answer 34 quick questions. The first 8 find where you feel at home, and you choose a lane: Land, Air or Water. The rest ask how you act and how you get things done. Each animal has its own traits and habits, and the one closest to your answers becomes your inner animal. The percentage shows how close the fit is.</p>
+      <h3>The Familiar ↔ Surprising slider</h3>
+      <p>Slide left for well-known animals, right for rarer and stranger ones. Every animal sits in one of four tiers: Common, Uncommon, Unique and Bizarre. The Zoo shows them all and marks the ones you've found.</p>
+      <h3>Your Pack</h3>
+      <p>Near matches are the next-closest animals. Your Shadow is the animal whose traits are most opposite to yours. Tap <strong>Make Top</strong> to keep any of them as your inner animal.</p>
+      <h3>Your results stay with you</h3>
+      <p>Results are saved in this browser only. Nothing is sent to a server.</p>
     </section>`; }
 };
 /* ---------- Quiz + Scoring ---------- */
@@ -1290,6 +1331,30 @@ class QuizRunner{
     this.lanePick=null;
   }
   inStageB(){ return this.aIndex>=this.stageA.length; }
+  // Forward steps taken so far: Stage A answers + the lane pick + Stage B answers.
+  steps(){ return this.aIndex + (this.lanePick?1:0) + this.bIndex; }
+  pushStep(){ history.pushState({view:'quiz', q:this.steps()}, '', '#quiz'); }
+  // The on-screen Back button rewinds history when this step has an entry, so
+  // both Back routes stay in step; popstate then calls back().
+  goBack(){
+    const st=history.state;
+    if(st && st.view==='quiz' && st.q===this.steps() && st.q>0) history.back();
+    else this.back();
+  }
+  back(){
+    if(this.lanePick && this.bIndex>0){ this.bIndex--; this.recompute(); this.updateCounters(); this.renderB(); return; }
+    if(this.lanePick){
+      this.lanePick=null; this.laneB=[];
+      const bSlot=this.renderInto.querySelector('#bSlot'); if(bSlot) bSlot.style.display='none';
+      const laneSlot=this.renderInto.querySelector('#laneSlot'); if(laneSlot){ laneSlot.innerHTML=''; laneSlot.appendChild(this.buildLaneUI()); }
+      this.updateCounters(); return;
+    }
+    if(this.aIndex>0){
+      this.aIndex--;
+      const laneSlot=this.renderInto.querySelector('#laneSlot'); if(laneSlot) laneSlot.innerHTML='';
+      this.recompute(); this.updateCounters(); this.renderA();
+    }
+  }
   boostFromOption(opt){ this.addOptionBoost(opt); }
   addOptionBoost(opt){
     for(const k in (opt?.trait_boosts||{})) (opt.trait_boosts[k]||[]).forEach(tr=>this.userTraits[tr]=(this.userTraits[tr]||0)+1);
@@ -1330,7 +1395,7 @@ class QuizRunner{
     return wrap;
   }
   chooseLane(l){
-    this.lanePick=l; this.laneB=(LANE_TRIADS&&LANE_TRIADS[l])?LANE_TRIADS[l]:[]; this.selectionsB=[]; this.bIndex=0; this.recompute();
+    this.lanePick=l; this.laneB=(LANE_TRIADS&&LANE_TRIADS[l])?LANE_TRIADS[l]:[]; this.selectionsB=[]; this.bIndex=0; this.recompute(); this.pushStep();
     if(this.renderInto){
       const laneSlot=this.renderInto.querySelector('#laneSlot'); if(laneSlot) laneSlot.innerHTML='';
       const bSlot=this.renderInto.querySelector('#bSlot'); if(bSlot) bSlot.style.display='block';
@@ -1339,13 +1404,13 @@ class QuizRunner{
   }
   updateCounters(){
     if(!this.renderInto) return;
-    const total=(this.stageA?.length||0)+(this.getStageB()?.length||0);
+    const total=questionTotal();
     const aDone=Math.min(this.aIndex,this.stageA.length);
     const bDone=Math.min(this.bIndex,this.getStageB().length);
     const answered=Math.min(aDone+bDone,total);
     const current=Math.min(answered+1,total);
     const line=this.renderInto.querySelector('#countLine');
-    if(line) line.textContent=`Q ${current}/${total} · A ${aDone}/${this.stageA.length} · B ${bDone}/${this.getStageB().length}`;
+    if(line) line.textContent=`Question ${current} of ${total}`;
     const pA=this.renderInto.querySelector('#progA'); if(pA) pA.style.width=`${(this.aIndex/this.stageA.length)*50}%`;
     const pB=this.renderInto.querySelector('#progB'); if(pB) pB.style.width=`${50+(this.bIndex/this.getStageB().length)*50}%`;
   }
@@ -1355,7 +1420,7 @@ class QuizRunner{
       <div class="controls">
         <div class="pill">User: <strong>${App.state.currentUser||'—'}</strong></div>
         <div style="min-width:240px;flex:1;display:flex;flex-direction:column;gap:4px">
-          <label id="biasLabel" for="biasRange" class="small muted" style="font-weight:600">Familiar ↔ Surprising</label>
+          <div><label id="biasLabel" for="biasRange" class="small muted" style="font-weight:600">Familiar ↔ Surprising</label><span class="info" role="button" tabindex="0" aria-label="About the slider" onclick="this.classList.toggle('open');event.stopPropagation()">i<span class="tip">Slide left for well-known animals, right for rarer and stranger ones. Tiers run Common, Uncommon, Unique, Bizarre.</span></span></div>
           <div class="range-wrap">
             <input id="biasRange" type="range" min="0" max="100" value="${this.slider}" aria-labelledby="biasLabel" aria-valuetext="${this.slider<48?'Familiar':this.slider>52?'Surprising':'Neutral'}"/>
             <div class="ticks"><span>Familiar</span><span>Neutral</span><span>Surprising</span></div>
@@ -1391,7 +1456,7 @@ class QuizRunner{
     }
     slot.innerHTML=''; const triad=this.stageA[this.aIndex];
     const selectedIdx=this.selectionsA[this.aIndex];
-    slot.appendChild(TriadView(triad,(opt,i)=>{ this.selectionsA[this.aIndex]=i; this.aIndex++; this.recompute(); this.updateCounters(); this.renderA(); }, ()=>{ if(this.aIndex>0){ this.aIndex--; this.recompute(); this.updateCounters(); this.renderA(); } }, ()=>{ this.selectionsA[this.aIndex]=null; this.aIndex++; this.recompute(); this.updateCounters(); this.renderA(); }, selectedIdx));
+    slot.appendChild(TriadView(triad,(opt,i)=>{ this.selectionsA[this.aIndex]=i; this.aIndex++; this.pushStep(); this.recompute(); this.updateCounters(); this.renderA(); }, ()=>this.goBack(), ()=>{ this.selectionsA[this.aIndex]=null; this.aIndex++; this.pushStep(); this.recompute(); this.updateCounters(); this.renderA(); }, selectedIdx));
     bringIntoView(slot.querySelector('.big'));
   }
   renderB(){
@@ -1408,13 +1473,33 @@ class QuizRunner{
     }
     slot.innerHTML=''; const triad=SB[this.bIndex];
     const selectedIdx=this.selectionsB[this.bIndex];
-    slot.appendChild(TriadView(triad,(opt,i)=>{ this.selectionsB[this.bIndex]=i; this.bIndex++; this.recompute(); this.updateCounters(); this.renderB(); }, ()=>{ if(this.bIndex>0){ this.bIndex--; this.recompute(); this.updateCounters(); this.renderB(); } else { this.lanePick=null; this.laneB=[]; const bSlot=this.renderInto.querySelector('#bSlot'); if(bSlot) bSlot.style.display='none'; const laneSlot=this.renderInto.querySelector('#laneSlot'); if(laneSlot){ laneSlot.innerHTML=''; laneSlot.appendChild(this.buildLaneUI()); } this.updateCounters(); } }, ()=>{ this.selectionsB[this.bIndex]=null; this.bIndex++; this.recompute(); this.updateCounters(); this.renderB(); }, selectedIdx));
+    slot.appendChild(TriadView(triad,(opt,i)=>{ this.selectionsB[this.bIndex]=i; this.bIndex++; this.recompute(); this.updateCounters(); if(this.bIndex<SB.length) this.pushStep(); this.renderB(); }, ()=>this.goBack(), ()=>{ this.selectionsB[this.bIndex]=null; this.bIndex++; this.recompute(); this.updateCounters(); if(this.bIndex<SB.length) this.pushStep(); this.renderB(); }, selectedIdx));
     bringIntoView(slot.querySelector('.big'));
   }
 }
 /* ---------- Boot ---------- */
 window.App = App;
-App.nav(App.state.view || 'home');
+// Each section has its own address, so the phone's Back button steps back
+// through the site (and mid-quiz, back one question) instead of leaving it.
+window.addEventListener('popstate', (e)=>{
+  const st=e.state||{view:location.hash.slice(1)||'home'};
+  const q=App.quiz;
+  if(st.view==='quiz' && App.state.view==='quiz' && q){
+    const target=st.q||0;
+    if(target<=q.steps()){ while(q.steps()>target) q.back(); }
+    // shortcut: a step entry from before a reload (or Forward) can't be replayed; stay put, never drop answers
+    else history.replaceState({view:'quiz', q:q.steps()}, '', '#quiz');
+    return;
+  }
+  // Back from the reveal into a finished quiz: skip its per-question entries to the quiz start.
+  if(st.view==='quiz' && st.q){ history.go(-st.q); return; }
+  App.nav(st.view, true);
+});
+{
+  const start=VIEWS.includes(location.hash.slice(1)) ? location.hash.slice(1) : 'home';
+  history.replaceState({view:start}, '', location.href);
+  App.nav(start, true);
+}
 </script>
 </body>
 </html>
